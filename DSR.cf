@@ -1273,14 +1273,12 @@ describe          DSR_DHLCOM_INVALID              Invalid mail from DHL... proba
 score             DSR_DHLCOM_INVALID              12
 
 # Bos Incasso Fraude
-
 header            __DSR_BOSINCASSO               From      =~ /\@bos-incasso\.nl/i
 meta              DSR_BOSINCASSO                 (__DSR_BOSINCASSO) >= 1
 describe          DSR_BOSINCASSO                 Fraude van fake bos incasso adres
 score             DSR_BOSINCASSO                 15
 
 # Woningnet scam
-
 header            __DSR_WONINGNET001             From      =~ /\@woningnet\.nl|\@[a-z][a-z0-9]{1,36}\.woningnet\.nl/i 
 
 meta              DSR_WONINGNET_VALID            __DSR_WONINGNET001 && SPF_PASS
@@ -1334,15 +1332,11 @@ meta               DSR_VDVALKFROM                __DSR_VDVALK001
 describe           DSR_VDVALKFROM                Van der Valk SPAM
 score              DSR_VDVALKFROM                5.0
 
-
 meta               DSR_VDVALK                    (__DSR_VDVALK001 && __DSR_VDVALK002)
 describe           DSR_VDVALK                    vd Valk Spam
 score              DSR_VDVALK                    15.0
 
-
-
 #CEO Fraud
-#
 body               __DSR_CEOFRAUD_003             /We moeten een betaling van .{5,16} te maken aan een bedrijf in .{4,25}. Welke informatie heb je nodig om de betaling te doen vandaag?/i
 body               __DSR_CEOFRAUD_004             /Met vriendelijke Groet/
 
@@ -1350,9 +1344,7 @@ meta              DSR_CEOFRAUD                    (__DSR_CEOFRAUD_003 + __DSR_CE
 describe          DSR_CEOFRAUD                    CEO Fraud
 score             DSR_CEOFRAUD                    6.5
 
-
 # Medicijnen
-
 header            __DSR_SUBJECT_MEDS001           Subject =~ /Meds:/i
 header            __DSR_SUBJECT_MEDS002           Subject =~ /Generic/i
 header            __DSR_SUBJECT_MEDS003           Subject =~ /Viagra/i
@@ -1365,7 +1357,6 @@ meta              DSR_SUBJECT_MEDS                __DSR_SUBJECT_MEDS001 + __DSR_
 describe          DSR_SUBJECT_MEDS                Subject met medicijnen
 score             DSR_SUBJECT_MEDS                4.0
 
-
 header            __DSR_MARLYKOOK001              From =~ /\"Marley Spoon\" \</i
 header            __DSR_MARLYKOOK002              Subject =~ /De nieuwe manier van koken/i
 body              __DSR_MARLYKOOK003              /De nieuwe manier van koken/i
@@ -1373,7 +1364,6 @@ body              __DSR_MARLYKOOK003              /De nieuwe manier van koken/i
 meta              DSR_MARLYKOOK                   __DSR_MARLYKOOK001 + __DSR_MARLYKOOK002 + __DSR_MARLYKOOK003 >= 3
 describe          DSR_MARLYKOOK                   Subject met medicijnen
 score             DSR_MARLYKOOK                   8.0
-
 
 header            __DSR_WELLICHT001                 Subject =~ /Wellicht iets voor jou/i
 body              __DSR_WELLICHT002                 /Via onze nieuwe contact methode kom je simpel in contact met seks zoekende uit de regio/i
@@ -1383,7 +1373,6 @@ body              __DSR_WELLICHT004                 /Een plek waar mannen en vro
 meta              DSR_WELLICHT                    __DSR_WELLICHT001 + __DSR_WELLICHT002 + __DSR_WELLICHT003 + __DSR_WELLICHT004 >= 4
 describe          DSR_WELLICHT                    Seks dating
 score             DSR_WELLICHT                    8.0
-
 
 header            __DSR_NBC001                    From =~ /\"NBC\" \</i
 header            __DSR_NBC002                    Subject =~ /hypotheeklasten/i
@@ -1400,11 +1389,7 @@ meta               DSR_SENIORENVOORDEEL          (__DSR_SENIORENVOORDEEL001 + __
 describe           DSR_SENIORENVOORDEEL          Spam Voordeel voor Senioren
 score              DSR_SENIORENVOORDEEL          8.0
 
-
 # Spam mbt Alarmsystemen
-#
-#
-
 header             __DSR_ALARMSYS001             From =~ /Inbraakchecker|Veilig Wonen Nederland/i
 header             __DSR_ALARMSYS002             Subject =~ /inbraakcheck|Hoe veilig woont u/i
 body               __DSR_ALARMSYS003             /Elke 10 minuten wordt er in Nederland ingebroken/i
@@ -1415,14 +1400,6 @@ score              DSR_ALARMSYS                  8.0
 meta               DSR_ALARMSYS                  (__DSR_ALARMSYS001 + __DSR_ALARMSYS002 + __DSR_ALARMSYS003) >= 3
 describe           DSR_ALARMSYS                  Spam Inbraaksysteemspam 
 score              DSR_ALARMSYS                  8.0
-
-
-
-
-
-
-
-
 
 # Russian Girl Friend
 header            __DSR_RUSSIANGF001              X-Mailer =~ /PHPMailer 5\.2\.22/i
@@ -1438,7 +1415,6 @@ meta              DSR_RUSSIANGF                   (__DSR_RUSSIANGF001 + __DSR_RU
 describe          DSR_RUSSIANGF                   Get lost
 score             DSR_RUSSIANGF                   15.0
 
-
 header            __DSR_RUSHOOKUP001                Subject =~ /Hookup|Fuckbuddy|Instacheat/i
 body              __DSR_RUSHOOKUP002                /Hookup|fuckbuddy|Instacheat/i
 uri               __DSR_RUSHOOKUP999                /clck\.yandex\.ru/i
@@ -1446,7 +1422,6 @@ uri               __DSR_RUSHOOKUP999                /clck\.yandex\.ru/i
 meta              DSR_RUSHOOKUP                     (__DSR_RUSHOOKUP001 + __DSR_RUSHOOKUP002 + __DSR_RUSHOOKUP999 + HEADER_FROM_DIFFERENT_DOMAINS) >= 4
 describe          DSR_RUSHOOKUP                   Get lost
 score             DSR_RUSHOOKUP                   15
-
 
 #SEO Spam
 header            __DSR_SEOSPAM001              From      =~ /Domain Expiration SEO|Final reminder|Internet Services/i
@@ -1469,7 +1444,6 @@ meta              DSR_SEOSPAM                   DSR_KORTEURL + __DSR_SEOSPAM001 
 describe          DSR_SEOSPAM SEO Offer spam
 score             DSR_SEOSPAM 10.0
 
-
 #Phishing for cPanel passwords
 header             __DSR_CPANEL_PHISH001         From      =~ /cPanel/i
 header             __DSR_CPANEL_PHISH002         Subject   =~ /De-activation Notice/i
@@ -1479,20 +1453,13 @@ meta               DSR_CPANEL_PHISH __DSR_CPANEL_PHISH001 + __DSR_CPANEL_PHISH00
 describe           DSR_CPANEL_PHISH Phishing for cPanel passwords
 score              DSR_CPANEL_PHISH 10.0
 
-
-
-
-
 body               __DSR_DATASOFTSPAM001         /DataSoftSolutions LP, 64 Cumberland Street, Edinburgh, VK/i
 body               __DSR_DATASOFTSPAM002         /Time Travel Promotion LP/i
 meta               DSR_DATASOFTSPAM              __DSR_DATASOFTSPAM001 && __DSR_DATASOFTSPAM002
 describe           DSR_DATASOFTSPAM              Zakelijke spam van DatasoftSolutions
 score              DSR_DATASOFTSPAM              15
 
-
 # promotrades.com
-#
-
 header            __DSR_PROMOTRADESCOM           From =~ /promotrades\.com/i
 meta              DSR_PROMOTRADESCOM             __DSR_PROMOTRADESCOM
 describe          DSR_PROMOTRADESCOM             Promotrades.com altijd SPAM
@@ -1513,7 +1480,6 @@ meta             DSR_MAYR                        __DSR_MAYR_F001 && __DSR_MAYR_B
 describe         DSR_MAYR                        friedrich mayrhofer scam
 score            DSR_MAYR                        15
 
-
 # TW Spam
 header           __DSR_TWSCAM_F001               From =~ /TW.{0,30}</i
 header           __DSR_TWSCAM_F002               From =~/mail\@/i
@@ -1522,11 +1488,7 @@ meta             DSR_TWSCAM                      __DSR_TWSCAM_F001 && __DSR_TWSC
 describe         DSR_TWSCAM                      TW Scam
 score            DSR_TWSCAM                      15
 
-
-
-
 # Zoom spam
-#
 ifplugin Mail::SpamAssassin::Plugin::DKIM
   header            __DSR_ZOOMUS_VALID001    From =~ /\@zoom\.us|\@.{1,35}\.zoom\.us/i
   meta              DSR_ZOOMUS_VALID __DSR_ZOOMUS_VALID001 && DKIM_VALID && SPF_PASS
@@ -1540,15 +1502,10 @@ meta               DSR_FAKEZOOMVM                __DSR_FAKEZOOMVM_001 && !DSR_ZO
 describe           DSR_FAKEZOOMVM                Fake Zoom voicemail alerts
 score              DSR_FAKEZOOMVM               35           
 
-
 whitelist_from_spf                               @zoom.us
 whitelist_from_spf                               @*.zoom.us
 
-
-
 # .icu domein...... nog niets nuttigs
-#
-
 rawbody            DSR_ICU                       /http(?:s):\/\/(?:www.)?.{4,30}\.(icu)(\b|\/)/i
 score              DSR_ICU                       0.50
 describe           DSR_ICU                       Prevalent use of .icu in spam/malware
@@ -1566,9 +1523,7 @@ meta               DSR_KORTEURL                  (__DSR_KORTEURL + __DSR_MINIDOM
 score              DSR_KORTEURL                  0.001
 describe           DSR_KORTEURL                  Use of a URL Shortener for short URL
 
-
 # SPF Whitelist
-
 whitelist_from_spf      *@belastingdienst.nl
 whitelist_from_spf      *@rivm.nl
 whitelist_from_spf      *@*.rivm.nl
@@ -1609,7 +1564,6 @@ whitelist_from_spf      onlineservice@informatie.postnl.nl
 whitelist_from_spf      zakelijkefactuur@facturen.postnl.nl
 whitelist_from_spf      noreply@account.postnl.nl
 
-
 # diverse deurwaarders
 whitelist_from_spf      *@bazuin.nl
 whitelist_from_spf      *@ggn.nl
@@ -1619,7 +1573,6 @@ whitelist_from_spf      *@lavg.nl
 whitelist_from_spf      *@transactions.lavg.nl
 whitelist_from_spf      *@ram-vismans.nl
 whitelist_from_spf      *@syncasso.nl
-
 whitelist_from_spf      *@rijksoverheid.nl
 whitelist_from_spf      *@sidn.nl
 whitelist_from_spf      *@pub.sidn.nl
@@ -1628,8 +1581,6 @@ whitelist_from_spf      *@vdb.nl
 
 if (version >= 4.000000) 
   welcomelist_from_spf     *@rijksoverheid.nl
-
 endif
-
 
 #EOF
