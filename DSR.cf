@@ -1,0 +1,1774 @@
+# DSR.cf - Dutch SpamAssassin Rules
+#
+# Author: Thom van der Boon
+#
+# Email: thom@vanderboon.net
+#
+# Home Page: https://dutchspamassassinrules.nl/DSR/DSR.cf
+#
+# Dit is een verzameling van spamassassin rules die ik op mijn 
+# eigen systeem gebruik met als hoofddoel Nederlands-talige 
+# spam/phishing mails te onderscheppen. Naast deze regels bevat 
+# het bestand ook regels andere spam/phishing mails te onderscheppen. 
+# Als ik bijvoorbeeld geregeld spam ontvang, die niet afgevangen 
+# wordt door de andere rule sets die ik gebruik, dan is de kans 
+# groot dat ik een paar regels toevoeg om deze spam mails te 
+# filteren.
+#
+# Ik heb een aantal spam traps. Iets dat binnenkomt op een van deze 
+# spam traps is zo wie zo spam
+#
+# Gebruik van de DSR op uw eigen systeem is natuurlijk geheel op eigen risico :) 
+#
+# Dit cf bestand is geschreven voor eem spamassassin drempelwaarde van 5.0 of hoger.
+# Daarnaast een "High score spam" van 10.0 of hoger  
+#
+# Op https://dutchspamassassinrules.nl/DSR staan scripts voor het gebruik van de DSR
+# i.c.m. MailScanner
+#
+# In verband met regelmatige updates graag DSR.cf een maal per uur fetchen. 
+# Graag niet allemaal op het hele uur.
+#
+#   Copyright (c) 2017-2021 Thom van der Boon
+#
+#   Licensed under the Apache License, Version 2.0 (the "License");
+#   you may not use this file except in compliance with the License.
+#   You may obtain a copy of the License at
+#
+#       http://www.apache.org/licenses/LICENSE-2.0
+#
+#   Unless required by applicable law or agreed to in writing, software
+#   distributed under the License is distributed on an "AS IS" BASIS,
+#   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#   See the License for the specific language governing permissions and
+#   limitations under the License.
+#
+#
+# A very big thanks to Kevin A. McGrail for inspiring me to start the DSR.
+# Kevin's rules (KAM.cf) work great for spam/phishing mails in the English language,
+# but they don't in Dutch (sorry Kevin :) ). Kevin's rules are a great source for
+# ideas on how to detect spam/phishing mails using spamassassin.
+
+
+################################################################################
+###
+###  SEKS! Als je in 1 mail gelijktijdig 5 van de onderstaande woorden gebruikt,
+###  moet je nodig naar een psycholoog of verstuur je spam
+###
+################################################################################
+body               __DSR_NLSEKSB001              /neuken/i
+body               __DSR_NLSEKSB002              /seks/i
+body               __DSR_NLSEKSB003              /poesje/i
+body               __DSR_NLSEKSB004              /milf/i
+body               __DSR_NLSEKSB005              /geil/i
+body               __DSR_NLSEKSB006              /hete meid|coole meid/i
+body               __DSR_NLSEKSB007              /sex/i
+uri                __DSR_NLSEKSB008              /hotgirls|milf/i
+
+meta               DSR_NLSEKSBODY                __DSR_NLSEKSB001 + __DSR_NLSEKSB002 + __DSR_NLSEKSB003 + __DSR_NLSEKSB004 + __DSR_NLSEKSB005 + __DSR_NLSEKSB006 + __DSR_NLSEKSB007 + __DSR_NLSEKSB008 >= 5
+describe           DSR_NLSEKSBODY                Seks in bodytekst
+score              DSR_NLSEKSBODY                7.0
+
+#################################################################################
+####
+####  Afslank-spam
+####
+#################################################################################
+
+header             __DSR_AFSLANK_F001            From =~ /afslankkuur|afslankrage|afslankmethode/i
+meta               DSR_AFSLANK_FROM              __DSR_AFSLANK_F001 >= 1
+describe           DSR_AFSLANK_FROM              Afslank Spam Trap - From deel
+score              DSR_AFSLANK_FROM              1.0
+
+header             __DSR_AFSLANK_S001            Subject =~ / .. kilo kwijtraakte/i
+header             __DSR_AFSLANK_S002            Subject =~ /in slechts (.|..) dagen/i
+meta               DSR_AFSLANK_SUBJ              __DSR_AFSLANK_S001 + __DSR_AFSLANK_S002 >= 2
+describe           DSR_AFSLANK_SUBJ              Afslank Spam Trap - Subject deel
+score              DSR_AFSLANK_SUBJ              3.0
+
+body               __DSR_AFSLANK_B001            / .. kilo kwijtraakte/i
+body               __DSR_AFSLANK_B002            /in slechts (.|..) dagen/i
+meta               DSR_AFSLANK_BODY              __DSR_AFSLANK_B001 + __DSR_AFSLANK_B002 >= 2
+describe           DSR_AFSLANK_BODY              Afslank Spam Trap - Body deel
+score              DSR_AFSLANK_BODY              1.0
+
+meta               DSR_AFSLANKSPAM               DSR_AFSLANK_FROM + DSR_AFSLANK_SUBJ + DSR_AFSLANK_BODY >= 3
+describe           DSR_AFSLANKSPAM               Afslank
+score              DSR_AFSLANKSPAM               5.0
+
+##############################################################################
+##
+##  CBD Olie
+##
+###############################################################################
+
+header             __DSR_CBDOLIE_F001            From =~ /CBD Olie|CDB Wietolie|(Pure|Premium) CBD|cbdoil\@|cbdolie\@/i
+meta               DSR_CBDOLIE_FROM              __DSR_CBDOLIE_F001 >= 1
+describe           DSR_CBDOLIE_FROM              CBD Olie Spam Trap - From deel
+score              DSR_CBDOLIE_FROM              3.0
+
+header             __DSR_CBDOLIE_S001            Subject =~ /CBD Olie|CBD Wietolie|(Premium|Pure) CBD/i
+meta               DSR_CBDOLIE_SUBJ              (__DSR_CBDOLIE_S001  >= 1) && DSR_CBDOLIE_FROM
+describe           DSR_CBDOLIE_SUBJ              CBD Olie Spam Trap - Subject deel
+score              DSR_CBDOLIE_SUBJ              1.5
+
+body               __DSR_CBDOLIE_TEL             /CBD/
+tflags             __DSR_CBDOLIE_TEL             multiple maxhits=4
+describe           __DSR_CBDOLIE_TEL             CBD Teller
+
+meta               DSR_HAS_4_CBD                 (__DSR_CBDOLIE_TEL >= 4)
+describe           DSR_HAS_4_CBD                 CBD teller = 4 hmmmmmm
+score              DSR_HAS_4_CBD                 2.0
+
+body               __DSR_CBDOLIE_B001            /CBD Olie/i
+body               __DSR_CBDOLIE_B002            /(Pure|Premium) CBD/i
+body               __DSR_CBDOLIE_B003            /CBD Wietolie/i
+meta               DSR_CBDOLIE_BODY              DSR_HAS_4_CBD + __DSR_CBDOLIE_B001 + __DSR_CBDOLIE_B002 + __DSR_CBDOLIE_B003 >= 3
+describe           DSR_CBDOLIE_BODY              CBD Olie Spam Trap - Body deel
+score              DSR_CBDOLIE_BODY              1.0
+
+meta               DSR_CBDOLIESPAM               DSR_CBDOLIE_FROM + DSR_CBDOLIE_SUBJ + DSR_CBDOLIE_BODY + DSR_HAS_4_CBD + DSR_KORTEURL >= 4
+describe           DSR_CBDOLIESPAM               CBD Olie
+score              DSR_CBDOLIESPAM               5.0
+
+##############################################################################
+##
+##  Speciale berichtgeving  
+##
+###############################################################################
+
+header             __DSR_SPBERICHT_F001           From =~ /SPECIALE BERICHTGEVING|Nederlanders verdienen|SPECIAL REPORT/i
+header             __DSR_SPBERICHT_F002           From =~ /NOS Journaal|NOS\.nl|NOS </i
+
+header             __DSR_SPBERICHT_S001           Subject =~ /verbaast experts en maakt grote banken doodsbang|Nederlanders verdienen al miljoenen euro\'s vanuit huis door gebruik te maken van deze maas in de wet om rijk te worden|De bekende Nederlandse .{2,25} deed een aankondiging over de pandemische crisis/i
+header             __DSR_SPBERICHT_S002           Subject =~ /Jan Smit|Jort Kelder|Carice van Houten|Rik van de Westelaken/i
+header             __DSR_SPBERICHT_S003           Subject =~ /het ongelofelijke rendement|verdienen die grote winsten kan opleveren/i
+
+header             __DSR_SPBERICHT_H001           List-Id =~ /b[0-9]{8,8}v[0-9]{8,8}/i
+header             __DSR_SPBERICHT_H002           List-Open =~ /open/
+header             __DSR_SPBERICHT_H003           List-Unsubscribe =~ /source=email-client-unsubscribe-button/
+
+body               __DSR_SPBERICHT_B001           /SPECIALE BERICHTGEVING|Special Report/i
+body               __DSR_SPBERICHT_B002           /onthult nieuwe geheime investering die honderden mensen|laat zien hoe mensen rijk kunnen worden|Verspil geen kans, begin nu. U kunt tot 10 keer/i
+body               __DSR_SPBERICHT_B003           /maas in de wet om rijk te worden|het meeste geld met een programma voor automatisch handelen in cryptovaluta/i
+body               __DSR_SPBERICHT_B004           /Jan Smit|Jort Kelder|Carice van Houten|Rik van de Westelaken/i
+body               __DSR_SPBERICHT_B005           /online handelsplatform|verdienen die grote winsten/i
+body               __DSR_SPBERICHT_B006           /verbaast experts en maakt grote banken doodsbang|investeerde geschokte experts en alle banken/i
+body               __DSR_SPBERICHT_B007           /btc|bitcoin/i
+
+uri                __DSR_SPBERICHT_U001           /bb2ecc.online/i
+uri                __DSR_SPBERICHT_U002           /btc-/i
+
+# Generieke Phishing teksten gericht op "Speciale Berichtgeving" spam
+
+body               __DSR_SPBERICHT_SPBR            /Jan Smit|Jort Kelder|Carice van Houten|Rik van de Westelaken|financiering zonder slag of stoot verbeteren|dubbelwinnende methode|snel (rijk|miljonair)|binnen een paar weken miljonair|geheime investering|de wereld draait door/i
+tflags             __DSR_SPBERICHT_SPBR            multiple maxhits=10
+describe           __DSR_SPBERICHT_SPBR            Speciale Berichtgeving
+
+meta               DSR_HAS_1_SPBR                (__DSR_SPBERICHT_SPBR >= 1)
+describe           DSR_HAS_1_SPBR                Speciale Berichtgeving teller = 1
+score              DSR_HAS_1_SPBR                0.01
+meta               DSR_HAS_2_SPBR                (__DSR_SPBERICHT_SPBR >= 2)
+describe           DSR_HAS_2_SPBR                Speciale Berichtgeving teller = 2
+score              DSR_HAS_2_SPBR                0.20
+meta               DSR_HAS_3_SPBR                (__DSR_SPBERICHT_SPBR >= 3)
+describe           DSR_HAS_3_SPBR                Speciale Berichtgeving teller = 3
+score              DSR_HAS_3_SPBR                0.20
+meta               DSR_HAS_4_SPBR                (__DSR_SPBERICHT_SPBR >= 4)
+describe           DSR_HAS_4_SPBR                Speciale Berichtgeving teller = 4 hmmmmmm
+score              DSR_HAS_4_SPBR                0.35
+meta               DSR_HAS_5_SPBR                (__DSR_SPBERICHT_SPBR >= 5)
+describe           DSR_HAS_5_SPBR                Speciale Berichtgeving teller = 5 tuuurlijk
+score              DSR_HAS_5_SPBR                0.50
+meta               DSR_HAS_6_SPBR                (__DSR_SPBERICHT_SPBR >= 6)
+describe           DSR_HAS_6_SPBR                Speciale Berichtgeving teller = 6 ga weg
+score              DSR_HAS_6_SPBR                0.75
+meta               DSR_HAS_7_SPBR                (__DSR_SPBERICHT_SPBR >= 7)
+describe           DSR_HAS_7_SPBR                Speciale Berichtgeving teller = 7 rot op
+score              DSR_HAS_7_SPBR                1.00
+meta               DSR_HAS_8_SPBR                (__DSR_SPBERICHT_SPBR >= 8)
+describe           DSR_HAS_8_SPBR                Speciale Berichtgeving teller = 8 rot op
+score              DSR_HAS_8_SPBR                1.00
+meta               DSR_HAS_9_SPBR                (__DSR_SPBERICHT_SPBR >= 9)
+describe           DSR_HAS_9_SPBR                Speciale Berichtgeving teller = 9 rot op
+score              DSR_HAS_9_SPBR                1.00
+meta               DSR_HAS_10_SPBR               (__DSR_SPBERICHT_SPBR >= 10)
+describe           DSR_HAS_10_SPBR               Speciale Berichtgeving teller = 10 rot op
+score              DSR_HAS_10_SPBR               1.00
+
+
+
+
+
+meta               DSR_SPBERICHT                  __DSR_SPBERICHT_B001 + __DSR_SPBERICHT_B002 + __DSR_SPBERICHT_B003 + __DSR_SPBERICHT_B004 + __DSR_SPBERICHT_B005 + __DSR_SPBERICHT_B006 +__DSR_SPBERICHT_B007 + HTML_IMAGE_ONLY_04 >= 4
+describe           DSR_SPBERICHT                  Speciale berichtgeving - oplichting
+score              DSR_SPBERICHT                  15.0
+
+
+meta               DSR_SPBERICHT_T001             __DSR_SPBERICHT_F001 + HTML_IMAGE_ONLY_04 >= 2
+describe           DSR_SPBERICHT_T001             Speciale berichtgeving Type 1 - BTC oplichting
+score              DSR_SPBERICHT_T001             15.0
+
+meta               DSR_SPBERICHT_T002             __DSR_SPBERICHT_S001 + __DSR_SPBERICHT_H001 + __DSR_SPBERICHT_U002 + HTML_IMAGE_ONLY_04 >= 4
+describe           DSR_SPBERICHT_T002             Speciale berichtgeving Type 2 - BTC oplichting
+score              DSR_SPBERICHT_T002             15.0
+
+meta               DSR_SPBERICHT_T003             __DSR_SPBERICHT_F002 + __DSR_SPBERICHT_H002 + __DSR_SPBERICHT_H003 + __DSR_SPBERICHT_B001 + __DSR_SPBERICHT_B002 + __DSR_SPBERICHT_B003 >= 6
+describe           DSR_SPBERICHT_T003             Speciale berichtgeving Type 3 - BTC oplichting
+score              DSR_SPBERICHT_T003             15.0
+
+meta               DSR_SPBERICHT_T004             __DSR_SPBERICHT_F002 + __DSR_SPBERICHT_H003 + __DSR_SPBERICHT_S002 + __DSR_SPBERICHT_S003 + __DSR_SPBERICHT_B004 + __DSR_SPBERICHT_B005 >= 6
+describe           DSR_SPBERICHT_T004             Speciale berichtgeving Type 4 - BTC oplichting
+score              DSR_SPBERICHT_T004             15.0
+
+meta               DSR_SPBERICHT_T005             __DSR_SPBERICHT_F001 + __DSR_SPBERICHT_F002 + __DSR_SPBERICHT_H003 + __DSR_SPBERICHT_S001 + __DSR_SPBERICHT_S002 + __DSR_SPBERICHT_S003 + __DSR_SPBERICHT_B001 + __DSR_SPBERICHT_B002 + __DSR_SPBERICHT_B003 + __DSR_SPBERICHT_B004 + __DSR_SPBERICHT_B005 + __DSR_SPBERICHT_B006 + __DSR_SPBERICHT_B007 >= 6
+describe           DSR_SPBERICHT_T005             Speciale berichtgeving Type 5 - BTC oplichting
+score              DSR_SPBERICHT_T005             15.0
+
+meta               DSR_SPBERICHT_T006             __DSR_SPBERICHT_H003  + __DSR_SPBERICHT_S002 + __DSR_SPBERICHT_B004 + DSR_HAS_2_SPBR >= 3
+describe           DSR_SPBERICHT_T006             Speciale berichtgeving Type 6 - BTC oplichting
+score              DSR_SPBERICHT_T006             8.0
+
+
+
+
+body               __DSR_VALCOTTAGE_001           /616 Corporate Way/i
+body               __DSR_VALCOTTAGE_002           /Valley Cottage, NY 10989/i
+meta               DSR_VALCOTTAGE                 __DSR_VALCOTTAGE_001 + __DSR_VALCOTTAGE_002 >= 2
+describe           DSR_VALCOTTAGE                 Spam door Valley Cottage uit NY
+score              DSR_VALCOTTAGE                 15.0
+
+
+
+
+##############################################################################
+##
+##  Oplichting door bedrijfspagina
+##
+###############################################################################
+
+
+header             __DSR_BEDRPAG001              From =~ /bedrijfspagina.info/i
+meta               DSR_BEDRPAG001                __DSR_BEDRPAG001 >= 1
+describe           DSR_BEDRPAG001                Mail van dit domein is altijd oplichting
+score              DSR_BEDRPAG001                20.0
+
+
+body               __DSR_BEDRPAG101              /Celsiusstraat 32/i
+body               __DSR_BEDRPAG102              /1704 RW Heerhugowaard/i
+body               __DSR_BEDRPAG103              /bedrijfspagina/i
+meta               DSR_BEDRPAG101                __DSR_BEDRPAG101 +  __DSR_BEDRPAG102 +  __DSR_BEDRPAG103 >= 3
+describe           DSR_BEDRPAG101                Waarschijnlijke oplichting door bedrijfspagina
+score              DSR_BEDRPAG101                5.0
+
+
+##############################################################################
+####
+####  Zonnepanelen spam
+####
+##############################################################################
+
+header             __DSR_NLDB001                Return-Path =~ /bounce\@|fromname/i
+header             __DSR_NLDB002                From =~ /NLDB/
+header             __DSR_NLDB003                References =~ /\@/i
+header             __DSR_NLDB004                Reply-To =~ /\@/i
+header             __DSR_NLDB005                To =~ /\@/i
+header             __DSR_NLDB006                List-id =~ /.{20}/i
+
+
+meta               DSR_NLDBSUB                  (__DSR_NLDB003 + __DSR_NLDB004 + __DSR_NLDB005) >= 3
+describe           DSR_NLDBSUB                  Subtest NLDB 
+score              DSR_NLDBSUB                  0.01
+
+meta               DSR_NLDB2                    __DSR_NLDB006 && DSR_NLDBSUB
+describe           DSR_NLDB2                    NLDB Spam2
+score              DSR_NLDB2                    5.0
+
+
+
+meta               DSR_NLDB1                    (DSR_KORTEURL + __DSR_NLDB001 + __DSR_NLDB002 + __DSR_NLDB006 >= 3) && DSR_NLDBSUB
+describe           DSR_NLDB1                    NLDB Spam
+score              DSR_NLDB1                    5.0
+
+meta               DSR_NLDB                     (__DSR_NLDB001 + __DSR_NLDB002 + __DSR_NLDB006 >= 3) && DSR_NLDBSUB
+describe           DSR_NLDB                     NLDB Spam
+score              DSR_NLDB                     15.0
+
+
+##############################################################################
+###
+###  Zonnepanelen spam
+###
+################################################################################
+
+header             __DSR_ZONNLDB001              From =~ /Solar NLDB/i
+header             __DSR_ZONNLDB002              Subject =~ /Overstappen op zonne-energie\? Nooit goedkoper/i
+body               __DSR_ZONNLDB003              /zonnepanelen prijzen/i
+meta               DSR_ZONNLDB                   __DSR_ZONNLDB001 + __DSR_ZONNLDB002 + __DSR_ZONNLDB003 >= 2
+describe           DSR_ZONNLDB                   Spam voor zonnepanelen
+score              DSR_ZONNLDB                   15.0
+
+
+
+##############################################################################
+#
+#  Afdeling "Botte bijl"
+#
+##############################################################################
+
+ 
+header            __DSR_NLSPAMDOMAIN001          From =~ /1dayfly\.info|1dayfly\.com|clicplan\.nl|marsgrounds\.co|thywill\.be|specialsvoorjou\.com|perfectmbo.xyz|perfectservice.xyz|hollandnieuwsbrief\.net|rebateshop\.eu|amazonses\.com|inzercenews\.info|dekoopjesjager\.com/i
+header            __DSR_NLSPAMDOMAIN002          Received =~ /klavrrjassen\.nl|81\.29\.4\.188|mail\.gumgym\.icu/i
+uri               __DSR_NLSPAMDOMAIN003          /john\.net\.pl|outspot\.nl|outspot\.be|outspot\.eu|helenwhite\.su|angelahot\.su/i
+header            __DSR_NLSPAMDOMAIN004          From =~ /(ism|i\.s\.m) Dagelijkseoffer/i
+
+meta              DSR_NLSPAMDOMAIN               __DSR_NLSPAMDOMAIN001 + __DSR_NLSPAMDOMAIN002 + __DSR_NLSPAMDOMAIN003 + __DSR_NLSPAMDOMAIN004 >= 1
+describe          DSR_NLSPAMDOMAIN               Mail van deze domeinen is altijd spam
+score             DSR_NLSPAMDOMAIN               20.0
+
+
+# Hosting bedrijven waarvan servers door spammers worden gebruikt
+# Mail van servers
+#
+
+header            __DSR_NLSPAMHOSTER001          Received =~ /81\.29\.0\..{1,3}|81\.29\.4\.|81\.29\.5\./i # IA Hoster NV in Willemstad/Curacao...vaak spam/phishing. Lijkt ook gehackte servers te hebben 
+
+meta               DSR_NLSPAMHOSTER              __DSR_NLSPAMHOSTER001  >= 1
+describe           DSR_NLSPAMHOSTER              Mail van servers van deze hosters is vaak spam
+score              DSR_NLSPAMHOSTER              7.0
+
+header             __DSR_IAHOST_GEN              Return-Path =~ /bounce-.....-.........-..........\@.{1,60}\.(eu|nl)/i
+
+meta               DSR_IAHOST_GEN                (__DSR_NLSPAMHOSTER001 + __DSR_IAHOST_GEN) >= 2
+describe           DSR_IAHOST_GEN                Spam van IA Hoster servers
+score              DSR_IAHOST_GEN                20.0 
+
+
+# Spam van INTERNET-CONSULTIN, Vorontsovskaya, Rusland
+
+body               __DSR_ICONSULT_001            /OOO \"INTERNET-CONSULTIN\"/i
+body               __DSR_ICONSULT_002            /Vorontsovskaya/i
+
+meta               DSR_ICONSULT                  (__DSR_ICONSULT_001 && __DSR_ICONSULT_002)
+describe           DSR_ICONSULT                  Spam van INTERNET-CONSULTIN, Vorontsovskaya, Rusland
+score              DSR_ICONSULT                  15.0
+
+
+# Spam van DataSoft Solutions SA, Cascade, Seychellen 
+
+body               __DSR_DATASOFT_001            /DataSoft Solutions SA/i
+body               __DSR_DATASOFT_002            /PO Box 2069/i
+body               __DSR_DATASOFT_003            /Cascade/i
+body               __DSR_DATASOFT_004            /SY/
+
+meta               DSR_ICONSULT                  (__DSR_DATASOFT_001 && __DSR_DATASOFT_002 && __DSR_DATASOFT_003 && __DSR_DATASOFT_004) 
+describe           DSR_ICONSULT                  Spam van DataSoft Solutions SA, Cascade, Seychellen
+score              DSR_ICONSULT                  15.0
+
+
+
+
+body               __DSR_AFSPRAAKJE001           /Ben jij serieus opzoek naar plezier of naar een relatie?/i
+body               __DSR_AFSPRAAKJE002           /Dan is dit jouw kans om direct je doel te bereiken/i
+body               __DSR_AFSPRAAKJE003           /Om het 3 jarig bestaan van onze website te vieren, hebben wij namelijk een kado voor je/i
+body               __DSR_AFSPRAAKJE004           /Namelijk: Gegarandeerd een afspraakje met iemand van het andere geslacht/i
+
+meta               DSR_AFSPRAAKJE                __DSR_AFSPRAAKJE001 + __DSR_AFSPRAAKJE002 + __DSR_AFSPRAAKJE003 + __DSR_AFSPRAAKJE004 >= 3
+describe           DSR_AFSPRAAKJE                Vage datingsite
+score              DSR_AFSPRAAKJE                10.0
+
+
+header             __DSR_NESPRESSO001            From =~ /Nespresso/i
+header             __DSR_NESPRESSO002            Subject =~ /Testers gezocht/i
+body               __DSR_NESPRESSO003            /Ja, stuur mij de gratis Nespresso machine!/i
+
+meta               DSR_NESPRESSO                 __DSR_NESPRESSO001 + __DSR_NESPRESSO002 + __DSR_NESPRESSO003 >= 3
+describe           DSR_NESPRESSO                 Nespresso Test Scam
+score              DSR_NESPRESSO                 10.0
+
+
+header             __DSR_GREENFLAMI001           From =~ /\bPickwick|Ariel\b/i
+body               __DSR_GREENFLAMI002           /wordt onafhankelijk georganiseerd door Green Flamingo/
+body               __DSR_GREENFLAMI003           /Hoewel deze mail niet is gestuurd door GreenFlamingo/i
+
+meta               DSR_GREENFLAMI                __DSR_GREENFLAMI001 + __DSR_GREENFLAMI002 + __DSR_GREENFLAMI003 >= 3
+describe           DSR_GREENFLAMI                Spam van Green Flamingo
+score              DSR_GREENFLAMI                15.0
+
+
+# Gezondheidscentrum
+
+header            __DSR_GEZONDHEIDSCENTUM001     Header =~ /Afvallen terwijl je slaapt|Afvallen zonder te sporten/i
+header            __DSR_GEZONDHEIDSCENTUM002     From =~ /Gezondheidscentrum Nederland|Uw Gezondheidscentrum/i
+
+meta              DSR_GEZONDHEIDSCENTUM          __DSR_GEZONDHEIDSCENTUM001 + __DSR_GEZONDHEIDSCENTUM002 >= 2
+describe          DSR_GEZONDHEIDSCENTUM          Afvallen van gezondheidscentrum
+score             DSR_GEZONDHEIDSCENTUM          10.0
+
+
+# WeTransfer
+header            __DSR_WETRANSFERVALID001       From =~ /\@wetransfer\.com/i
+uri               __DSR_WETRANSFERVALID002       /https:\/\/wetransfer\.com\/|https:\/\/we\.tl\//i
+
+meta              DSR_WETRANSFERVALID            (__DSR_WETRANSFERVALID001 && __DSR_WETRANSFERVALID002 && DKIM_VALID && SPF_PASS)
+describe          DSR_WETRANSFERVALID            WeTransfer Valid
+score             DSR_WETRANSFERVALID            -5.0
+
+# WeTransfer
+header            __DSR_WETRANSFER001            From =~ /WeTransfer|We.Transfer.{1,15}<|\@we-transfer\.(net|com)\@wetransfer\.(net|com)/i
+
+meta              DSR_WETRANSFER                 (__DSR_WETRANSFER001 && !DSR_WETRANSFERVALID)
+describe          DSR_WETRANSFER                 WeTransfer Scam
+score             DSR_WETRANSFER                 5.0
+
+
+header            __DSR_HANDELPATROON001         Subject =~ /Handel met patronen/i 
+header            __DSR_HANDELPATROON002         Subject =~ /verdien dagelijks 2.200/i
+body              __DSR_HANDELPATROON003         /zijn Pattern Trader verdient rond de/i
+body              __DSR_HANDELPATROON004         /handelen van activa in bepaalde patronen/i
+body              __DSR_HANDELPATROON005         /Er is altijd een manier om fatsoenlijk te leven door buiten de kaders te denken\./i
+body              __DSR_HANDELPATROON006         /van de dingen is waar mensen het tegenwoordig over hebben online handelen is\./i
+body              __DSR_HANDELPATROON007         /Hier is een voorbeeld van een online handel tool/i
+body              __DSR_HANDELPATROON008         /Het verfijnde algoritme erachter is iets dat mijn aandacht heeft getrokken\./i
+meta              DSR_HANDELPATROON              (__DSR_HANDELPATROON001 + __DSR_HANDELPATROON002 + __DSR_HANDELPATROON003 + __DSR_HANDELPATROON004 + __DSR_HANDELPATROON005 + __DSR_HANDELPATROON006 + __DSR_HANDELPATROON007 + __DSR_HANDELPATROON008) >= 4
+describe          DSR_HANDELPATROON              Handel in patronen spam
+score             DSR_HANDELPATROON              10.0
+
+
+# Vodafone scam
+header            __DSR_VODAFONE001              From =~ /vodafone/i
+uri               __DSR_VODAFONE002              /https?:\/\/vodaf0ne\./i
+body              __DSR_VODAFONE003              /Mijn Vodafone|My Vodafone|MijnVodafone|MyVodafone/i
+body              __DSR_VODAFONE004              /uw persoonlijke Vodafone omgeving/i
+body              __DSR_VODAFONE005              /de factuur online bekijken|Hebt u nog vragen over uw factuur/i
+
+meta              DSR_VODAFONE                   (__DSR_VODAFONE001 + __DSR_VODAFONE002 + __DSR_VODAFONE003 + __DSR_VODAFONE004 + __DSR_VODAFONE005 + DSR_KORTEURL) >= 3
+describe          DSR_VODAFONE                   Vodafone Scam
+score             DSR_VODAFONE                   4.0
+
+
+#Bitcoin spam
+header            __DSR_BITCOIN001               From =~ /\"Bitcoin\" |Bitcoin |btcdirect|btc|bitcoin millions|uitbetaling in Bitcoins|Bitcoin Loterij|Bitc0in/i
+header            __DSR_BITCOIN002               Subject =~ /Verdien miljoenen met bitcoin|Bitcoin Gold|Gegarandeerd 13.000 Euro|Uitbetaling bevestigen|Ik garandeer jou 13 duizend euro|Je wordt betaald|GOLF VAN BITCOIN/i
+body              __DSR_BITCOIN003               /Bitcoin Gold is een fork van Bitcoin|extra geld verdien met crypto-valuta|de waanzinnige rendementen die Bitcoin|jouw bitcoin bonus|Bitcoin Code is exclusief/i
+body              __DSR_BITCOIN004               /snel geld verdienen|makkelijk geld verdienen/i
+body              __DSR_BITCOIN005               /bitcoin/i
+header            __DSR_BITCOIN006               From =~ /bitcoin/i
+
+meta              DSR_BITCOIN                    __DSR_BITCOIN001 + __DSR_BITCOIN002 + __DSR_BITCOIN003 + __DSR_BITCOIN004 + __DSR_BITCOIN005 + __DSR_BITCOIN006 >= 2
+describe          DSR_BITCOIN                    Spam for Bitcoin
+score             DSR_BITCOIN                    8.0
+
+
+header		  __DSR_SWISSCOIN001             Subject =~ /This crypto coin could go up fifty thousand percent this year/i
+body              __DSR_SWISSCOIN002             /Swisscoin is allowed by the Swiss government/i
+body              __DSR_SWISSCOIN003             /at least a thousand bucks in Swisscoin immediately/i
+
+meta              DSR_SWISSCOIN                  __DSR_SWISSCOIN001 + __DSR_SWISSCOIN002 + __DSR_SWISSCOIN003 >= 2
+describe          DSR_SWISSCOIN                  Spam for Bitcoin
+score             DSR_SWISSCOIN                  8.0
+
+
+
+header             __DSR_FAKERANSOM_S001         Subject =~ /Er is ingebroken in/i 
+header             __DSR_FAKERANSOM_S002         Subject =~ /Neem alstublieft corrigerende maatregelen\./i
+
+meta               DSR_FAKERANSOM_SUBJ           __DSR_FAKERANSOM_S001 + __DSR_FAKERANSOM_S002 >= 2
+describe           DSR_FAKERANSOM_SUBJ           Fake ransom mails
+score              DSR_FAKERANSOM_SUBJ           3.0
+
+body               __DSR_FAKERANSOM_B001         /video-opnamen waar je masturbeert/i
+body               __DSR_FAKERANSOM_B002         /Dit is mijn Bitcoin portemonnee/i
+body               __DSR_FAKERANSOM_B003         /EternalBlue Exploit/i
+
+meta               DSR_FAKERANSOM_BODY           __DSR_FAKERANSOM_B001 + __DSR_FAKERANSOM_B002 + __DSR_FAKERANSOM_B003 >= 3
+describe           DSR_FAKERANSOM_BODY           Fake ransom mails
+score              DSR_FAKERANSOM_BODY           3.0
+
+meta               DSR_FAKERANSOM                (DSR_FAKERANSOM_SUBJ && DSR_FAKERANSOM_BODY)
+describe           DSR_FAKERANSOM                Fake ransom mails
+score              DSR_FAKERANSOM                5.0
+
+body               __DSR_FAKERANSOM_B004x        /Y\&\#x/i
+body               __DSR_FAKERANSOM_B004         /Y\&\#x3BF;ur \&\#x3C1;assw\&\#x3BF;rd \&\#x3B9;s <b>.{2,30}<\/b>. I know \&\#x3B1; lo\&\#x3C4;/i
+body               __DSR_FAKERANSOM_B005         /m\&\#x3BF;re \&\#x3C4;h\&\#x3B7;gs \&\#x3B1;b\&\#x3BF;ut you \&\#x3C4;h\&\#x3B1;\&\#x3B7;/i
+meta               DSR_FAKERANSOM_BODY2          __DSR_FAKERANSOM_B004 + __DSR_FAKERANSOM_B005  >= 2
+describe           DSR_FAKERANSOM_BODY2          Fake ransom mails
+score              DSR_FAKERANSOM_BODY2          8.0
+
+
+
+
+rawbody           __DSR_LOGISTIEKPHISHB001       /heeft een van onze chauffeurs geprobeerd om een pakket voor/i
+rawbody           __DSR_LOGISTIEKPHISHB002       /Om een nieuwe afspraak te maken dient u het afsprakenformulier dat automatisch voor u is gegenereerd van onze website te downloaden./i
+rawbody           __DSR_LOGISTIEKPHISHB003       /Let op! het is alleen mogelijk om een nieuwe afspraak via het afsprakenformulier te maken./i
+rawbody           __DSR_LOGISTIEKPHISHB004       /.doc/i
+rawbody           __DSR_LOGISTIEKPHISHB005       /\/formulieren\//i
+
+meta              DSR_LOGISTIEKPHISH             __DSR_LOGISTIEKPHISHB001 + __DSR_LOGISTIEKPHISHB002 + __DSR_LOGISTIEKPHISHB003 + __DSR_LOGISTIEKPHISHB004 + __DSR_LOGISTIEKPHISHB005  >= 5
+describe          DSR_LOGISTIEKPHISH             Phishing van logistiek dienstverlener gericht tegen bedrijven... net echt, dus wegwezen
+score             DSR_LOGISTIEKPHISH             20.0
+
+
+#  Rendement Uitgeverij..... *zucht*
+header            DSR_RENDEMENT                  From =~ /\@mailingrendement\.nl|\@rendement\.nl|\@.{2,65}\.rendement.nl/i
+describe	  DSR_RENDEMENT                  Rendement Uitgeverij *zucht*
+score             DSR_RENDEMENT                  4.0
+
+
+#  Offerte spam
+header            __DSR_OFFERTES001              Subject =~ /quote for|aanbod voor|verse koffie voor/i
+header            __DSR_OFFERTEH002              List-Unsubscribe =~ /\/\/list\.localbizreport\.net/i
+body              __DSR_OFFERTEB003              /Mijn naam is|Ik ben|Ik heet/i
+body              __DSR_OFFERTEB004              /ik werk bij|ik ben werkzaam bij|en ben werkzaam bij/i
+body              __DSR_OFFERTEB005              /die bedrijven als|we voor bedrijven offertes vergelijken/i
+body              __DSR_OFFERTEB006              /up to date houdt van de beste deals|voor bedrijven offertes verzorgen van/i
+
+meta              DSR_OFFERTESPAM                (__DSR_OFFERTES001 + __DSR_OFFERTEB002 + __DSR_OFFERTEB003 + __DSR_OFFERTEB004 + __DSR_OFFERTEB005 + __DSR_OFFERTEB006)  >= 4
+describe          DSR_OFFERTESPAM                Offerte spam
+score             DSR_OFFERTESPAM                8.0
+
+header           __DSR_PROFWEBSITE001            Subject =~ /Professioneel webdesign voor/i
+body             __DSR_PROFWEBSITE002            /Ik heet/i
+body             __DSR_PROFWEBSITE003            /ik ben werkzaam bij/i
+body             __DSR_PROFWEBSITE004            /waar we voor bedrijven offertes verzorgen van professionele en betaalbare webdesignbureaus/i
+body             __DSR_PROFWEBSITE005            /Upgrade uw website en webdesign naar een mooie, aantrekkelijke website die uw bezoekers nog lang bij zal blijven/i
+body             __DSR_PROFWEBSITE006            /Om een offerte of voorstel voor u op te stellen hebben wij de volgende informatie nodig/i
+body             __DSR_PROFWEBSITE007            /Nicole De Nes/i
+
+meta              DSR_PROFWEBSITE                (__DSR_PROFWEBSITE001 + __DSR_PROFWEBSITE002  + __DSR_PROFWEBSITE003 + __DSR_PROFWEBSITE004 + __DSR_PROFWEBSITE005 + __DSR_PROFWEBSITE006 + __DSR_PROFWEBSITE007)  >= 4
+describe          DSR_PROFWEBSITE                Professionele website Offerte spam
+score             DSR_PROFWEBSITE                10.0
+
+
+# Offertes voor frankeermachines
+header            __DSR_FRANKEERMACHINE001       From =~ /\@nl-frankeermachine./i
+header            __DSR_FRANKEERMACHINE002       From =~ /frankeermachine/i
+header            __DSR_FRANKEERMACHINE003       Subject =~ /Frankeermachines voor/i
+header            __DSR_FRANKEERMACHINE004       Subject =~ /Frankeren zonder postzegels/i
+body              __DSR_FRANKEERMACHINE005       /beste deals van frankeermachine-aanbieders/i
+body              __DSR_FRANKEERMACHINE006       /bekijk dan op onze site de beste aanbiedingen/i
+body              __DSR_FRANKEERMACHINE007       /Gedaan met kleven/i
+body              __DSR_FRANKEERMACHINE008       /Frankeer automatisch en bespaar op/i
+body              __DSR_FRANKEERMACHINE009       /De postzegels zijn voorgoed verleden tijd/i
+body              __DSR_FRANKEERMACHINE010       /postkantoor. Koop nu een gebruiksvriendelijke frankeermachine/i
+
+meta              DSR_FRANKEERMACHINE0           __DSR_FRANKEERMACHINE001 + __DSR_FRANKEERMACHINE002 + __DSR_FRANKEERMACHINE003 + __DSR_FRANKEERMACHINE004 + __DSR_FRANKEERMACHINE005 + __DSR_FRANKEERMACHINE006 + __DSR_FRANKEERMACHINE007 + __DSR_FRANKEERMACHINE008 + __DSR_FRANKEERMACHINE009 + __DSR_FRANKEERMACHINE010 >= 3
+describe          DSR_FRANKEERMACHINE0           Spam for frankeermachines
+score             DSR_FRANKEERMACHINE0           8.0
+
+
+# mijnoverheid.nl
+# Mail vanuit een mijnoverheid.nl domein is volgens het SPF record altijd fout
+#
+
+
+header             __DSR_MIJNOVERHEID_001        From =~ /\@mijn\.overheid\.nl/i
+meta               DSR_MIJNOVERHEID_VALID        __DSR_MIJNOVERHEID_001 && SPF_PASS
+describe           DSR_MIJNOVERHEID_VALID        Geldige mail van MijnOverheid
+score              DSR_MIJNOVERHEID_VALID        -20
+
+meta               DSR_MIJNOVERHEIDFAIL_001       __DSR_MIJNOVERHEID_001 && SPF_FAIL
+describe           DSR_MIJNOVERHEIDFAIL_001      Ongeldige mail van MijnOverheid
+score              DSR_MIJNOVERHEIDFAIL_001      15.0
+
+header             __DSR_MIJNOVERHEID_002        From =~ /\@mijnoverheid\.nl|\@.{1,65}\.mijnoverheid\.nl|\@mijn.overheid\.nl|\@.{1,65}\.mijn.overheid\.nl/
+header             __DSR_MIJNOVERHEID_003        From =~ /\bMijnOverheid\b|\bMijn.Overheid\b/i
+
+meta               DSR_MIJNOVERHEID_FROM         (__DSR_MIJNOVERHEID_002 || __DSR_MIJNOVERHEID_003) && !DSR_MIJNOVERHEID_VALID
+describe           DSR_MIJNOVERHEID_FROM         Verdachte mail van MijnOverheid
+score              DSR_MIJNOVERHEID_FROM         5
+
+meta               DSR_MIJNOVERHEID_FROMX        (__DSR_MIJNOVERHEID_002  || __DSR_MIJNOVERHEID_003)  && DSR_KORTEURL && !DSR_MIJNOVERHEID_VALID
+describe           DSR_MIJNOVERHEID_FROMX        Erg verdachte mail van MijnOverheid
+score              DSR_MIJNOVERHEID_FROMX        5
+
+
+
+
+#  Specific rules for CJIB (Centraal Justitieel Incassobureau) Fraud mails
+#
+
+ifplugin Mail::SpamAssassin::Plugin::DKIM
+    header           __DSR_CJIB_VALID001         From =~ /\@cjib.nl/i
+    meta             DSR_CJIB_VALID              __DSR_CJIB_VALID001 && DKIM_VALID && SPF_PASS
+    describe         DSR_CJIB_VALID              Sender appears to be a legit mail from CJIB
+    score            DSR_CJIB_VALID              -10.0
+endif
+
+header            __DSR_CJIBFRAUD001             From =~ /CJIB /i
+header            __DSR_CJIBFRAUD002             From =~ /Centraal Justitieel Incassobureau/i
+meta              DSR_CJIBFRAUD0xx               ((__DSR_CJIBFRAUD001 + __DSR_CJIBFRAUD002 >= 1) && !DSR_CJIB_VALID)
+describe          DSR_CJIBFRAUD0xx               Part I of poision pill to detect possible CJIB Fraud mail 
+score             DSR_CJIBFRAUD0xx               1.0
+
+header            __DSR_CJIBFRAUD101             Subject =~ /Laatste aanmaning betaalverzoek/i
+header            __DSR_CJIBFRAUD102             Subject =~ /Voorkom beslag legging/i
+header            __DSR_CJIBFRAUD103             Subject =~ /Voorkom beslaglegging/i
+header            __DSR_CJIBFRAUD104             Subject =~ /laatste aanmaning/i
+header            __DSR_CJIBFRAUD105             Subject =~ /Verkeersvoorschrift/i
+meta              DSR_CJIBFRAUD1xx               __DSR_CJIBFRAUD101 + __DSR_CJIBFRAUD102 + __DSR_CJIBFRAUD103 + __DSR_CJIBFRAUD104 + __DSR_CJIBFRAUD105 >= 1
+describe          DSR_CJIBFRAUD1xx               Part II of poision pill to detect possible CJIB Fraud mail
+score             DSR_CJIBFRAUD1xx               0.1
+
+body              __DSR_CJIBFRAUD501    /BKR/i
+body              __DSR_CJIBFRAUD502    /blokkeren van uw rekening/i
+body              __DSR_CJIBFRAUD503    /U bent verplicht het openstaande/i
+body              __DSR_CJIBFRAUD504    /Bent u het niet eens met deze besschikking/i
+body              __DSR_CJIBFRAUD505    /U kunt geen betalingsregeling treffen/i
+body              __DSR_CJIBFRAUD506    /Om die reden zullen wij uw bank opdracht geven beslag te leggen op uw rekening/i
+body              __DSR_CJIBFRAUD507    /op de rekening van het Centraal Justitieel/i
+body              __DSR_CJIBFRAUD508    /Centraal Justitieel Incassobureau (CJIB) bijgeschreven./i
+body              __DSR_CJIBFRAUD509    /vervolgens twee aanmaningen ontvangen over het overtreden van een/i
+body              __DSR_CJIBFRAUD510    /van het CJIB te Leeuwarden/i
+body              __DSR_CJIBFRAUD511    /CJIB/i
+meta              DSR_CJIBFRAUD5xx      ((__DSR_CJIBFRAUD501 + __DSR_CJIBFRAUD502 + __DSR_CJIBFRAUD503 + __DSR_CJIBFRAUD504 + __DSR_CJIBFRAUD505 + __DSR_CJIBFRAUD506 + __DSR_CJIBFRAUD507 + __DSR_CJIBFRAUD508 + __DSR_CJIBFRAUD509 +__DSR_CJIBFRAUD510 +__DSR_CJIBFRAUD511 >= 2) && !DSR_CJIB_VALID)
+describe          DSR_CJIBFRAUD5xx Part II of poision pill to detect possible CJIB Fraud mail
+score             DSR_CJIBFRAUD5xx 1.0
+
+meta              DSR_CJIBFRAUD  DSR_CJIBFRAUD0xx + DSR_CJIBFRAUD1xx + DSR_CJIBFRAUD5xx >= 2
+describe          DSR_CJIBFRAUD Poision pill to detect possible CJIB Fraud mail
+score             DSR_CJIBFRAUD 4.0
+
+
+header             __DSR_FAKEDEURWAARDER001      From =~ /(l|i)ncasso|deurwaarder/i
+
+
+
+
+ifplugin Mail::SpamAssassin::Plugin::SPF
+  header           __DSR_BAZUIN_VALID001         From =~ /\@[a-z][a-z0-9]{1,65}\.bazuin.nl|\@bazuin.nl/i
+  meta             DSR_BAZUIN_VALID              __DSR_BAZUIN_VALID001 && SPF_PASS
+  describe         DSR_BAZUIN_VALID              Geldig Bazuin Deurwaarder mailadres
+  score            DSR_BAZUIN_VALID              -10.0
+endif
+
+header             __DSR_BAZUIN_INVALID001       From =~ /bazuin/i
+meta               DSR_BAZUIN_INVALID            (__DSR_BAZUIN_INVALID001 && __DSR_FAKEDEURWAARDER001 && !DSR_BAZUIN_VALID)
+describe           DSR_BAZUIN_INVALID            Mogelijke oplichting fake Bazuin Deurwaarder
+score              DSR_BAZUIN_INVALID            3.0
+
+ifplugin Mail::SpamAssassin::Plugin::SPF
+  header           __DSR_FLANDERIJN_VALID001     From =~ /\@[a-z][a-z0-9]{1,65}\.flanderijn.nl|\@flanderijn.nl/i
+  meta             DSR_FLANDERIJN_VALID          __DSR_FLANDERIJN_VALID001 && SPF_PASS
+  describe         DSR_FLANDERIJN_VALID          Geldig Flanderijn mailadres
+  score            DSR_FLANDERIJN_VALID          -10.0
+endif
+
+header             __DSR_FLANDERIJN_INVALID001   From =~ /flanderijn/i
+meta               DSR_FLANDERIJN_INVALID        (__DSR_FLANDERIJN_INVALID001 && !DSR_FLANDERIJN_VALID)
+describe           DSR_FLANDERIJN_INVALID        Mogelijke oplichting fake Flanderijn
+score              DSR_FLANDERIJN_INVALID        3.0
+
+
+
+ifplugin Mail::SpamAssassin::Plugin::SPF
+  header           __DSR_SYNCASSO_VALID001       From =~ /\@[a-z][a-z0-9]{1,65}\.syncasso.nl|\@syncasso.nl/i
+  meta             DSR_SYNCASSO_VALID            __DSR_SYNCASSO_VALID001 && SPF_PASS
+  describe         DSR_SYNCASSO_VALID            Geldig syncasso mailadres
+  score            DSR_SYNCASSO_VALID            -10.0
+endif
+
+header             __DSR_SYNCASSO_INVALID001     From =~ /syncasso/i
+meta               DSR_SYNCASSO_INVALID          (__DSR_SYNCASSO_INVALID001 && !DSR_SYNCASSO_VALID)
+describe           DSR_SYNCASSO_INVALID          Mogelijke oplichting fake syncasso
+score              DSR_SYNCASSO_INVALID          3.0
+
+
+meta               DSR_DEURWAARDER_VALID         (DSR_BAZUIN_VALID || DSR_FLANDERIJN_VALID || DSR_SYNCASSO_VALID)
+describe           DSR_DEURWAARDER_VALID         Geldige mail van een deurwaarder
+score              DSR_DEURWAARDER_VALID         -0.5
+
+
+body               __DSR_DEURWAARDER_TEL         /schuld|beslag|incasso/i
+tflags             __DSR_DEURWAARDER_TEL         multiple maxhits=7
+describe           __DSR_DEURWAARDER_TEL         Deurwaarder teller
+
+meta               DSR_DEURWAARDER_TELLER        (__DSR_DEURWAARDER_TEL >= 4) && !DSR_DEURWAARDER_VALID
+describe           DSR_DEURWAARDER_TELLER        Detectie van oplichting door fake deurwaarders
+score              DSR_DEURWAARDER_TELLER        0.01
+
+
+
+
+
+
+
+
+#  Specific rules for Belastingdienst Phishing mails
+ifplugin Mail::SpamAssassin::Plugin::DKIM
+  header           __DSR_BELDIENST_VALID001      From =~ /\@belastingdienst.nl/i
+  meta             DSR_BELDIENST_VALID           __DSR_BELDIENST_VALID001 && DKIM_VALID && SPF_PASS
+  describe         DSR_BELDIENST_VALID           Sender appears to be a legit mail from Belastingdienst
+  score            DSR_BELDIENST_VALID           -10.0
+endif
+
+meta               DSR_BELDIENST_INVALID         (__DSR_BELDIENST_VALID001 && SPF_FAIL && !DSR_BELDIENST_VALID)
+describe           DSR_BELDIENST_INVALID         Valid Belastingdienst Mailadress that fails SPF test....
+score              DSR_BELDIENST_INVALID         5.0
+
+header             __DSR_FBELDIENST_001          From =~  /belastingdienst\@/i
+header             __DSR_FBELDIENST_002          Subject =~ /belastingdienst/i
+body               __DSR_FBELDIENST_003          /digitale factuur van uw openstaande schuld bij de Belastingdienst/i
+
+meta               DSR_FBELDIENST                ((__DSR_FBELDIENST_001 + __DSR_FBELDIENST_002 + __DSR_FBELDIENST_003 >= 2) && !DSR_BELDIENST_VALID)
+describe           DSR_FBELDIENST                Fake mail van belastingdienst
+score              DSR_FBELDIENST                15.0
+
+
+# Deze zijn heel erg fout en altijd Phising
+header            __DSR_GENBANK_S001             From =~ /\@bankmail\.nl|\@.{1,14}bankmail\.nl/i
+# Deze komt vaak voor in Phishing mails
+header            __DSR_GENBANK_S101             From =~ /\@services\.nl/i
+
+
+meta               DSR_GENBANK_SHARDFAIL         (__DSR_GENBANK_S001 >= 1) && SPF_FAIL
+describe           DSR_GENBANK_SHARDFAIL         Bekend phising domein
+score              DSR_GENBANK_SHARDFAIL         6.0
+
+meta               DSR_GENBANK_SSOFTFAIL         (__DSR_GENBANK_S101 >= 1)
+describe           DSR_GENBANK_SSOFTFAIL         Bekend phising domein
+score              DSR_GENBANK_SSOFTFAIL         3.0
+
+# Generieke Phishing teksten gericht op Nederlandse banken
+#
+body               __DSR_GENBANK_BPAS            /(betaal|bank)(pas|product)|(wereld|digi)pas/i
+tflags             __DSR_GENBANK_BPAS            multiple maxhits=7
+describe           __DSR_GENBANK_BPAS            Betaalpas 
+
+meta               DSR_HAS_1_BPAS                (__DSR_GENBANK_BPAS >= 1)
+describe           DSR_HAS_1_BPAS                Betaalpas teller = 1
+score              DSR_HAS_1_BPAS                0.01
+meta               DSR_HAS_2_BPAS                (__DSR_GENBANK_BPAS >= 2)
+describe           DSR_HAS_2_BPAS                Betaalpas teller = 2
+score              DSR_HAS_2_BPAS                0.20
+meta               DSR_HAS_3_BPAS                (__DSR_GENBANK_BPAS >= 3)
+describe           DSR_HAS_3_BPAS                Betaalpas teller = 3
+score              DSR_HAS_3_BPAS                0.20
+meta               DSR_HAS_4_BPAS                (__DSR_GENBANK_BPAS >= 4)
+describe           DSR_HAS_4_BPAS                Betaalpas teller = 4 hmmmmmm
+score              DSR_HAS_4_BPAS                0.35
+meta               DSR_HAS_5_BPAS                (__DSR_GENBANK_BPAS >= 5)
+describe           DSR_HAS_5_BPAS                Betaalpas teller = 5 tuuurlijk
+score              DSR_HAS_5_BPAS                0.50
+meta               DSR_HAS_6_BPAS                (__DSR_GENBANK_BPAS >= 6)
+describe           DSR_HAS_6_BPAS                Betaalpas teller = 6 ga weg
+score              DSR_HAS_6_BPAS                0.75
+meta               DSR_HAS_7_BPAS                (__DSR_GENBANK_BPAS >= 7)
+describe           DSR_HAS_7_BPAS                Betaalpas teller = 7 rot op
+score              DSR_HAS_7_BPAS                1.00
+
+body               __DSR_GENBANK_NBPAS           /((nieuwe|verbeterde|vervangende|verbeterde|verouderde).{1,14}((betaal|bank)(pas|product)|(wereld|digi)pas))|(betaal|bank|digi|wereld)pas.{1,12}(is verouderd|in te leveren|inleveren|vervalt|aan te vragen|aanvragen)/i
+tflags             __DSR_GENBANK_NBPAS           multiple maxhits=7
+describe           __DSR_GENBANK_NBPAS           Nieuwe betaalpas
+
+meta               DSR_HAS_1_NBPAS                (__DSR_GENBANK_NBPAS >= 1)
+describe           DSR_HAS_1_NBPAS                Nieuwe betaalpas teller = 1
+score              DSR_HAS_1_NBPAS                0.01
+meta               DSR_HAS_2_NBPAS                (__DSR_GENBANK_NBPAS >= 2)
+describe           DSR_HAS_2_NBPAS                Nieuwe betaalpas teller = 2
+score              DSR_HAS_2_NBPAS                0.20
+meta               DSR_HAS_3_NBPAS                (__DSR_GENBANK_NBPAS >= 3)
+describe           DSR_HAS_3_NBPAS                Nieuwe betaalpas teller = 3
+score              DSR_HAS_3_NBPAS                1.00
+meta               DSR_HAS_4_NBPAS                (__DSR_GENBANK_NBPAS >= 4)
+describe           DSR_HAS_4_NBPAS                Nieuwe betaalpas teller = 4 hmmmmmm
+score              DSR_HAS_4_NBPAS                1.00
+meta               DSR_HAS_5_NBPAS                (__DSR_GENBANK_NBPAS >= 5)
+describe           DSR_HAS_5_NBPAS                Nieuwe betaalpas teller = 5 tuuurlijk
+score              DSR_HAS_5_NBPAS                1.50
+meta               DSR_HAS_6_NBPAS                (__DSR_GENBANK_NBPAS >= 6)
+describe           DSR_HAS_6_NBPAS                Nieuwe betaalpas teller = 6 ga weg
+score              DSR_HAS_6_NBPAS                1.50
+meta               DSR_HAS_7_NBPAS                (__DSR_GENBANK_NBPAS >= 7)
+describe           DSR_HAS_7_NBPAS                Nieuwe betaalpas teller = 7 rot op
+score              DSR_HAS_7_NBPAS                1.50
+
+
+# |(betaal|bank|digi|wereld)pas (is verouderd|in te leveren|inleveren|vervalt)
+#
+
+body               __DSR_GENBANK_B001            /vervangende.{1,12}(betaal|bank|digi|wereld)pas/i
+body               __DSR_GENBANK_B002            /vernieuwde.{1,12}(betaal|bank|digi|wereld)pas/i
+body               __DSR_GENBANK_B003            /nieuwe.{1,12}(betaal|bank|digi|wereld)pas/i
+body               __DSR_GENBANK_B004            /verbeterde.{1,12}(betaal|bank|digi|wereld)pas/i
+body               __DSR_GENBANK_B005            /verouderde.{1,12}(betaal|bank|digi|wereld)pas/i
+body               __DSR_GENBANK_B006            /(betaal|bank|digi|wereld)pas is verouderd/i
+body               __DSR_GENBANK_B007            /(betaal|bank|digi|wereld)pas in te leveren|(betaal|bank|digi|wereld)pas inleveren|(betaal|bank|digi|wereld)pas inleveren/i
+body               __DSR_GENBANK_B008            /(betaal|bank|digi|wereld)pas vervalt/i
+body               __DSR_GENBANK_B009            /instant Payments/i
+body               __DSR_GENBANK_B010            /NFC/i
+
+meta               DSR_GENBANK_BETAALPAS         __DSR_GENBANK_B001 + __DSR_GENBANK_B002 + __DSR_GENBANK_B003 + __DSR_GENBANK_B004 + __DSR_GENBANK_B005 + __DSR_GENBANK_B006 + __DSR_GENBANK_B007 + __DSR_GENBANK_B008 + __DSR_GENBANK_B009 + __DSR_GENBANK_B010 >=  3
+describe           DSR_GENBANK_BETAALPAS         Common Body texts of NL Bank Phishing mails
+score              DSR_GENBANK_BETAALPAS         2.0
+
+
+# Veiligbankieren.nl
+# Mail vanuit een veiligbankieren.nl domein is volgens het SPF record altijd fout
+#
+
+header             __DSR_VEILIGBANK_001          From =~ /\@veiligbankieren\.nl/i
+header             __DSR_VEILIGBANK_002          From =~ /\@.{1,65}\.veiligbankieren\.nl/i
+header             __DSR_VEILIGBANK_003          From =~ /\@veilig.bankieren\.nl/i
+header             __DSR_VEILIGBANK_004          From =~ /\@.{1,65}\.veilig.bankieren\.nl/i
+meta               DSR_VEILIGBANK_001            (__DSR_VEILIGBANK_001 + __DSR_VEILIGBANK_002 + __DSR_VEILIGBANK_003 + __DSR_VEILIGBANK_004) >= 1
+describe           DSR_VEILIGBANK_001            Mail van veiligbankieren.nl is altijd Phishing mail
+score              DSR_VEILIGBANK_001            15.0
+
+
+# 
+
+ifplugin Mail::SpamAssassin::Plugin::DKIM
+  header           __DSR_ABNBANK_VALID001        From =~ /\@[a-z][a-z0-9]{1,65}\.abnamro\.com|\@nl\.abnamro\.com/i
+  meta             DSR_ABNBANK_VALID             __DSR_ABNBANK_VALID001 && DKIM_VALID && DKIM_VALID_AU && SPF_PASS
+  describe         DSR_ABNBANK_VALID             Geldig ABN AMRO mailadres
+  score            DSR_ABNBANK_VALID             -10.0
+endif
+
+meta               DSR_ABNBANK_INVALID           (__DSR_ABNBANK_VALID001 && !DSR_ABNBANK_VALID) && (SPF_FAIL + DKIM_INVALID>=1)
+describe           DSR_ABNBANK_INVALID           Geldig ABN AMRO mailadres met FOUTE DKIM of SPF test
+score              DSR_ABNBANK_INVALID           5.0
+
+header             __DSR_ABNBANKLEASE_VALID001   From =~ /\@nl.abnamrolease.com/i
+header             __DSR_ABNBANKLEASE_VALID002   Received =~  /\.amstellease.nl/i
+meta               DSR_ABNBANKLEASE_VALID        __DSR_ABNBANKLEASE_VALID001 && __DSR_ABNBANKLEASE_VALID002
+describe           DSR_ABNBANKLEASE_VALID        Geldig ABN AMRO Leasing...
+score              DSR_ABNBANKLEASE_VALID        -3.0
+
+header             __DSR_ABNBANKCOMFIN_VALID001  From =~ /\@abnamrocomfin\.com|\@abnamrocomfin\.nl|\@abnamrocomfin\.de/i
+header             __DSR_ABNBANKCOMFIN_VALID002  Received =~  /mx1\.abnamrocomfin\.com|mx2\.abnamrocomfin\.com/i
+meta               DSR_ABNBANKCOMFIN_VALID       __DSR_ABNBANKCOMFIN_VALID001 && __DSR_ABNBANKCOMFIN_VALID002
+describe           DSR_ABNBANKCOMFIN_VALID       Sender appears to be a legit mail from ABN AMRO ComFin
+score              DSR_ABNBANKCOMFIN_VALID       -3.0
+
+
+
+header            __DSR_ABNBANK_PHISH_SENDER0xx From =~ /bankzaken\@abnamro\.nl|\@abnamro\.nl|\@abmamro\.nl|\@abnamro\.alerts|\@abn\.services\.nl|\@https-abnamro\.online|\@abnamro-nv\.com|abnamro\.nieuws\@info.klantenhelpdesk.nl|abnamro\.nieuws\@|info\.abnamro\@|\@bankmail\.nl|abnamro\.klantenservice\@|abnamro\@|\.bankmail\.nl|abnamro.service\@|\@abn|\nl.abna/i
+
+meta              DSR_ABNBANK_PHISH_SENDER0xx (__DSR_ABNBANK_PHISH_SENDER0xx && !DSR_ABNBANK_VALID && !DSR_ABNBANKLEASE_VALID && !DSR_ABNBANKCOMFIN_VALID)
+describe          DSR_ABNBANK_PHISH_SENDER0xx Common senders of ABN AMRO Phishing mails
+score             DSR_ABNBANK_PHISH_SENDER0xx 1.0
+
+header            __DSR_ABNBANK_PHISH_SENDER5xx From =~ /ABN AMRO BANK N.V|ABN AMRO Group N.V|ABN AMRO N.V|ABN AMRO|AMRO Bank N.V|ANB Amro Bank|amro N.V|ABNBANK|ABN-AMRO/i
+
+meta              DSR_ABNBANK_PHISH_SENDER5xx (__DSR_ABNBANK_PHISH_SENDER5xx && !DSR_ABNBANK_VALID && !DSR_ABNBANKLEASE_VALID && !DSR_ABNBANKCOMFIN_VALID)
+describe          DSR_ABNBANK_PHISH_SENDER5xx Common senders of ABN AMRO Phishing mails
+score             DSR_ABNBANK_PHISH_SENDER5xx 1.0
+
+meta              DSR_ABNBANK_PHISH_SENDER (DSR_ABNBANK_INVALID + DSR_ABNBANK_PHISH_SENDER0xx + DSR_ABNBANK_PHISH_SENDER5xx >= 2) && !DSR_ABNBANK_VALID && !DSR_ABNBANKLEASE_VALID && !DSR_ABNBANKCOMFIN_VALID
+describe          DSR_ABNBANK_PHISH_SENDER Common senders of ABN AMRO Phishing mails
+score             DSR_ABNBANK_PHISH_SENDER 3.0
+
+#header            DSR_ABNBANK_PHISH_SUBJ Subject =~ /onze nieuwe betaalpas|een nieuwe betaalpas|betaalpas wordt binnenkort niet meer ondersteund|betaalpas vervalt voor gebruik|Uw nieuwe betaalproducten staan voor uw klaar|Uw digitale handtekening bevestigen|U heeft een cruciaal bankmail ontvangen|Identificatiecode dient geverifieerd te worden|Belangrijke informatie over uw betaalwijze|De vernieuwde applicatie/i
+##describe          DSR_ABNBANK_PHISH_SUBJ Common Subjects of ABN AMRO Phishing mails
+##score             DSR_ABNBANK_PHISH_SUBJ 2.0
+
+
+
+
+body               __DSR_ABNBANK_MABN            /ABN.AMRO betaalpas|e.dentifier|e.dentiefier|ABN.AMRO.{1,12}App|34334259/i
+tflags             __DSR_ABNBANK_MABN            multiple maxhits=7
+describe           __DSR_ABNBANK_MABN            Mijn ABN enzo
+
+meta               DSR_ABNBANK_HAS_1_MABN        (__DSR_ABNBANK_MABN >= 1) && !DSR_ABNBANK_VALID
+describe           DSR_ABNBANK_HAS_1_MABN        Mijn ABN teller = 1
+score              DSR_ABNBANK_HAS_1_MABN        0.01
+meta               DSR_ABNBANK_HAS_2_MABN        (__DSR_ABNBANK_MABN >= 2) && !DSR_ABNBANK_VALID
+describe           DSR_ABNBANK_HAS_2_MABN        Mijn ABN teller = 2
+score              DSR_ABNBANK_HAS_2_MABN        0.20
+meta               DSR_ABNBANK_HAS_3_MABN        (__DSR_ABNBANK_MABN >= 3) && !DSR_ABNBANK_VALID
+describe           DSR_ABNBANK_HAS_3_MABN        Mijn ABN teller = 3
+score              DSR_ABNBANK_HAS_3_MABN        0.20
+meta               DSR_ABNBANK_HAS_4_MABN        (__DSR_ABNBANK_MABN >= 4) && !DSR_ABNBANK_VALID
+describe           DSR_ABNBANK_HAS_4_MABN        Mijn ABN teller = 4 hmmmmmm
+score              DSR_ABNBANK_HAS_4_MABN        0.35
+meta               DSR_ABNBANK_HAS_5_MABN        (__DSR_ABNBANK_MABN >= 5) && !DSR_ABNBANK_VALID
+describe           DSR_ABNBANK_HAS_5_MABN        Mijn ABN teller = 5 tuuurlijk
+score              DSR_ABNBANK_HAS_5_MABN        0.50
+meta               DSR_ABNBANK_HAS_6_MABN        (__DSR_ABNBANK_MABN >= 6) && !DSR_ABNBANK_VALID
+describe           DSR_ABNBANK_HAS_6_MABN        Mijn ABN teller = 6 ga weg
+score              DSR_ABNBANK_HAS_6_MABN        0.75
+meta               DSR_ABNBANK_HAS_7_MABN        (__DSR_ABNBANK_MABN >= 7) && !DSR_ABNBANK_VALID
+describe           DSR_ABNBANK_HAS_7_MABN        Mijn ABN teller = 7 rot op
+score              DSR_ABNBANK_HAS_7_MABN        1.50
+
+body              __DSR_GENBANK_PHISH_BODY001     /vervangende ABN AMRO betaalpas/i
+body              __DSR_GENBANK_PHISH_BODY002     /vernieuwde ABN AMRO betaalpas/i
+body              __DSR_GENBANK_PHISH_BODY003     /nieuwe ABN AMRO betaalpas/i
+body              __DSR_GENBANK_PHISH_BODY004     /verbeterde ABN AMRO betaalpas/i
+body              __DSR_GENBANK_PHISH_BODY005     /verouderde ABN AMRO betaalpas/i
+body              __DSR_ABNBANK_PHISH_BODY006     /vervangende betaalpas aan te vragen/i
+body              __DSR_ABNBANK_PHISH_BODY007     /persoonlijke informatie van onze klanten te/i
+body              __DSR_ABNBANK_PHISH_BODY008     /beter beveiligde Mobiel Bankieren app/i
+body              __DSR_ABNBANK_PHISH_BODY009     /uw verouderde app vervallen/i
+body              __DSR_ABNBANK_PHISH_BODY010     /Uit onze gegevens blijkt dat er recentelijk een derde partij en of/i
+body              __DSR_ABNBANK_PHISH_BODY011     /illegale binnenkomst op uw Online ABN AMRO Account is gedetecteerd/i
+body              __DSR_ABNBANK_PHISH_BODY012     /op deze manier behoud u uw toegang tot de rekening/i
+body              __DSR_ABNBANK_PHISH_BODY013     /Blijf tijdens de koppeling van uw Digitale Handtekening op de webpagina/i
+body              __DSR_ABNBANK_PHISH_BODY014     /koppelen van uw Digitale Handtekening kan 5 - 10 minuten in beslag/i
+body              __DSR_ABNBANK_PHISH_BODY015     /Log online in op het internetbankieren via de onderstaande button/i
+body              __DSR_ABNBANK_PHISH_BODY016     /uw vijf cijferige identificatiecode/i
+body              __DSR_ABNBANK_PHISH_BODY017     /U dient de juiste gegevens in te voeren op de herstelpagina/i
+body              __DSR_ABNBANK_PHISH_BODY018     /wordt uw betaalverkeer opgeschort/i
+body              __DSR_ABNBANK_PHISH_BODY019     /nieuwe E.dentiefier introduceren/i
+body              __DSR_ABNBANK_PHISH_BODY020     /u nieuwe e.dentifier/i
+body              __DSR_ABNBANK_PHISH_BODY021     /u een verouderde betaalpas gebruikt/i
+body              __DSR_ABNBANK_PHISH_BODY022     /opvolger van uw huidige betaalpas/i
+body              __DSR_ABNBANK_PHISH_BODY023     /nieuwste verbeterde betaalpas/i
+body              __DSR_ABNBANK_PHISH_BODY024     /ontwikkeld om valse transacties defenitief te voorkomen/i
+body              __DSR_ABNBANK_PHISH_BODY025     /uw huidige betaalpas in te leveren/i
+body              __DSR_ABNBANK_PHISH_BODY026     /Uw betaalpas is verouderd/i
+body              __DSR_ABNBANK_PHISH_BODY027     /uw nieuwe betaalpas/i
+body              __DSR_ABNBANK_PHISH_BODY028     /app is compleet vernieuwd en gunstig voor de consumenten van ABN Amro/i
+body              __DSR_ABNBANK_PHISH_BODY029     /Amro app aanvraagformulier/i
+body              __DSR_ABNBANK_PHISH_BODY030     /de nieuwe ABN Amro app/i
+body              __DSR_ABNBANK_PHISH_BODY031     /toegang tot de Mobiel Bankieren App/i
+
+meta              DSR_ABNBANK_PHISH_BODY0xx DSR_GENBANK_BODY + __DSR_GENBANK_PHISH_BODY001 + __DSR_ABNBANK_PHISH_BODY002 + __DSR_ABNBANK_PHISH_BODY003 + __DSR_ABNBANK_PHISH_BODY004 + __DSR_ABNBANK_PHISH_BODY005 + __DSR_ABNBANK_PHISH_BODY006 + __DSR_ABNBANK_PHISH_BODY007 + __DSR_ABNBANK_PHISH_BODY008 + __DSR_ABNBANK_PHISH_BODY009 + __DSR_ABNBANK_PHISH_BODY010 + __DSR_ABNBANK_PHISH_BODY011 + __DSR_ABNBANK_PHISH_BODY012 + __DSR_ABNBANK_PHISH_BODY013 +  __DSR_ABNBANK_PHISH_BODY014 + __DSR_ABNBANK_PHISH_BODY015 + __DSR_ABNBANK_PHISH_BODY016 + __DSR_ABNBANK_PHISH_BODY017 + __DSR_ABNBANK_PHISH_BODY018 + __DSR_ABNBANK_PHISH_BODY019 + __DSR_ABNBANK_PHISH_BODY020 + __DSR_ABNBANK_PHISH_BODY021 + __DSR_ABNBANK_PHISH_BODY022 + __DSR_ABNBANK_PHISH_BODY023 + __DSR_ABNBANK_PHISH_BODY024 + __DSR_ABNBANK_PHISH_BODY025 + __DSR_ABNBANK_PHISH_BODY026 + __DSR_ABNBANK_PHISH_BODY027 + __DSR_ABNBANK_PHISH_BODY028 + __DSR_ABNBANK_PHISH_BODY029 + __DSR_ABNBANK_PHISH_BODY030 + __DSR_ABNBANK_PHISH_BODY031 >=  2
+describe           DSR_ABNBANK_PHISH_BODY0xx     Common Body texts of ABN AMRO Phishing mails
+score              DSR_ABNBANK_PHISH_BODY0xx     3.0
+
+meta               DSR_ABNBANK_PHISH_BODY9xx     DSR_ABNBANK_HAS_4_MABN && DSR_KORTEURL && !DSR_ABNBANK_VALID
+describe           DSR_ABNBANK_PHISH_BODY9xx     Common links in body of ABN AMRO Phishing mails
+score              DSR_ABNBANK_PHISH_BODY9xx     4.0
+
+meta               DSR_ABNBANK_PHISH             (DSR_ABNBANK_PHISH_SENDER0xx + DSR_ABNBANK_PHISH_SENDER5xx + DSR_ABNBANK_PHISH_SUBJ + DSR_ABNBANK_HAS_4_MABN + DSR_ABNBANK_PHISH_BODY9xx + DSR_GENBANK_PHISH_SUBJ + DSR_GENBANK_PHISH_BODY + DSR_HAS_4_BPAS >= 4) && !DSR_ABNBANK_VALID
+describe           DSR_ABNBANK_PHISH             Multiple triggers on ABN AMRO Phishing mail
+score              DSR_ABNBANK_PHISH             6.0
+
+#  Specific rules for Rabobank Phishing mails
+ifplugin Mail::SpamAssassin::Plugin::DKIM
+  header           __DSR_RABOBANK_VALID001       From =~ /\@[a-z][a-z0-9]{1,15}\.rabobank\.nl|\@rabobank\.nl/i
+  meta             DSR_RABOBANK_VALID            __DSR_RABOBANK_VALID001 && DKIM_VALID && SPF_PASS
+  describe         DSR_RABOBANK_VALID            Sender appears to be a legit mail from Rabobank
+  score            DSR_RABOBANK_VALID            -5.0
+endif
+
+meta               DSR_RABOBANK_INVALID           (__DSR_RABOBANK_VALID001 && !DSR_RABOBANK_VALID && SPF_FAIL)
+describe           DSR_RABOBANK_INVALID           Geldig ING E-Mailadres maar foute SPF test....
+score              DSR_RABOBANK_INVALID           5.0
+
+
+
+header             __DSR_RABOBANK_PFROM001       From =~ /\@nl-rabobank\..{2,9}|\@rabo\..{3,35}\..{2,9}|\@rabo(bank|-bank)\..{3,35}\..{2,9}|\@rabo(bank|-bank)\..{2,9}/i
+header             __DSR_RABOBANK_PFROM002       From =~ /rabo-pasfdeling\@/i
+header             __DSR_RABOBANK_PFROM003       From =~ /\@rabobank/i
+header             __DSR_RABOBANK_PFROM004       From =~ /\@rabo-bank|\@rabo\..{2,35}|\@rabobank\..{2,35}/i
+meta               DSR_RABOBANK_PFROM0xx         (__DSR_RABOBANK_PFROM001 + __DSR_RABOBANK_PFROM002 + __DSR_RABOBANK_PFROM003 + __DSR_RABOBANK_PFROM004 >= 1 ) && !DSR_RABOBANK_VALID
+describe           DSR_RABOBANK_PFROM0xx         Common senders of RABOBANK Phishing mails
+score              DSR_RABOBANK_PFROM0xx         1.0
+
+header             __DSR_RABOBANK_PFROM501       From =~ /Rabobank|rabo.bank/i
+meta               DSR_RABOBANK_PFROM5xx         (__DSR_RABOBANK_PFROM501 && !DSR_RABOBANK_VALID)
+describe           DSR_RABOBANK_PFROM5xx         Common senders of RABOBANK Phishing mails
+score              DSR_RABOBANK_PFROM5xx         4.0
+
+meta               DSR_RABOBANK_PFROM            (DSR_RABOBANK_PFROM5xx && DSR_RABOBANK_PFROM5xx)
+describe           DSR_RABOBANK_PFROM            Common senders of RABOBANK Phishing mails
+score              DSR_RABOBANK_PFROM            2.0
+
+header              __DSR_RABOBANK_PSUBJ001      Subject =~ /nieuwe( | rabo.{1,12})(bank|betaal|wereld)pas/i
+header              __DSR_RABOBANK_PSUBJ002      Subject =~ /vernieuwde( | rabo.{1,12})(bank|betaal|wereld)pas|(bank|betaal|wereld)pas.{1,20}(vervangen|verzending)/i
+header              __DSR_RABOBANK_PSUBJ003      Subject =~ /(bank|betaal|wereld)pas vervalt|(rabo|rabo.bank) bankmail/i
+header              __DSR_RABOBANK_PSUBJ004      Subject =~ /Rabo.{1,9}Internetbankieren/i
+meta                DSR_RABOBANK_PSUBJ           (__DSR_RABOBANK_PSUBJ001 + __DSR_RABOBANK_PSUBJ002 + __DSR_RABOBANK_PSUBJ003 + __DSR_RABOBANK_PSUBJ004 >= 1) && DSR_RABOBANK_PFROM5xx
+describe            DSR_RABOBANK_PSUBJ           Common Subjects of RABOBANK Phishing mails
+score               DSR_RABOBANK_PSUBJ           2.0
+
+body               __DSR_RABOBANK_PB001          /Rabobank/i
+body               __DSR_RABOBANK_PB002          /(nieuwe|vernieuwde|vervangende|verouderde|oude) (bank|betaal|rabo (bank|betaal|wereld)|rabobank (bank|betaal|wereld))pas/i
+body               __DSR_RABOBANK_PB003          /aan te vragen|aanvragen|Vraag kosteloos.{1,29}aan|Vraag.{1,29}(bank|betaal|wereld)pas.{1,29}aan/i
+body               __DSR_RABOBANK_PB004          /(kosten in rekening|kosteloos|gratis).{1,35}(bank|betaal|wereld)pas/i
+body               __DSR_RABOBANK_PB005          /(bank|betaal|wereld)pas.{1,35}(kosteloos|gratis)/i
+meta               DSR_RABOBANK_PB0xx            (__DSR_RABOBANK_PB001 + __DSR_RABOBANK_PB002 + __DSR_RABOBANK_PB003 + __DSR_RABOBANK_PB004 + __DSR_RABOBANK_PB005 >= 4) && !DSR_RABOBANK_VALID
+describe           DSR_RABOBANK_PB0xx            Common texts in body of RABOBANK Phishing mails
+score              DSR_RABOBANK_PB0xx            3.0
+
+meta               DSR_RABOBANK_PB9xx            DSR_RABOBANK_PB0xx + DSR_KORTEURL >= 2
+describe           DSR_RABOBANK_PB9xx            Common links in body of RABOBANK Phishing mails
+score              DSR_RABOBANK_PB9xx            4.0
+
+meta               DSR_RABOBANK_PHISH            (DSR_RABOBANK_PFROM0xx + DSR_RABOBANK_PFROM5xx + DSR_RABOBANK_PSUBJ  + DSR_RABOBANK_PB0xx + DSR_RABOBANK_PB9xx +DSR_GENBANK_PHISH_SUBJ + DSR_GENBANK_PHISH_BODY + DSR_HAS_4_BPAS  >= 4) && !DSR_RABOBANK_VALID
+describe           DSR_RABOBANK_PHISH            Multiple triggers on Rabobank Phishing mail
+score              DSR_RABOBANK_PHISH            6.0
+
+
+#  Specific rules for ING Bank Phishing mails
+header             __DSR_INGBANK_VALID001        From =~ /\@ing\.nl|\@ing\.com|\@[a-z][a-z0-9]{1,36}\.ing\.nl|\@businessboost\.nl|\@emailing\.businessboost\.nl|\@ingprivatebanking\.nl|\@email.ingthink.com|\@verzekeren.ing.nl/i
+ifplugin Mail::SpamAssassin::Plugin::DKIM
+  meta             DSR_INGBANK_VALID             (__DSR_INGBANK_VALID001 && DKIM_VALID )
+  describe         DSR_INGBANK_VALID             Sender appears to be a legit mail from ING BANK
+score              DSR_INGBANK_VALID             -5.0
+endif
+
+meta               DSR_INGBANK_INVALID           (__DSR_INGBANK_VALID001 && !DSR_INGBANK_VALID && SPF_FAIL)
+describe           DSR_INGBANK_INVALID           Geldig ING E-Mailadres maar foute SPF test....
+score              DSR_INGBANK_INVALID           5.0
+
+header             __DSR_INGBANK_PFROM001        From =~ /\@nl-ingbank\..{2,9}|\@ingbank\..{2,35}\..{2,9}|\@ing(bank|-bank)\..{2,35}\..{2,9}|\@ing(bank|-bank)\..{2,9}/i
+header             __DSR_INGBANK_PFROM002        From =~ /ingbank-.{2,20}\@|ingbank\@/i
+header             __DSR_INGBANK_PFROM003        From =~ /\@ing\.nl|bankieren\.nl|ingupdate\@|services\@ing\.n|\@ing\.nl\.com/i
+meta               DSR_INGBANK_PFROM0xx          ((__DSR_INGBANK_PFROM001 + __DSR_INGBANK_PFROM002 + __DSR_INGBANK_PFROM003 => 1) && !DSR_INGBANK_VALID)
+describe           DSR_INGBANK_PFROM0xx          INGBANK Phishing mail zenders
+score              DSR_INGBANK_PFROM0xx          1.0
+
+header             __DSR_INGBANK_PFROM500        From =~ /\bingbank |\"(ingbank|ing-bank)\" |Mijn ingbank|ingbank Klantenservice|ingbank Servicedesk|\bing.nl\b/i
+header             __DSR_INGBANK_PFROM501        From =~ /\bING BANK|\bING BANK N.V|ING N.V|\bING GROUP|Mijn ING\b|\bING BANK N.V|\bING\" <|\blNG\" <|\blNG Bank|ING groep|\bING\b|\blng\b/i
+meta               DSR_INGBANK_PFROM5xx          ((__DSR_INGBANK_PFROM500 + __DSR_INGBANK_PFROM501 >=1) && !DSR_INGBANK_VALID)
+describe           DSR_INGBANK_PFROM5xx          INGBANK Phishing mail zenders
+score              DSR_INGBANK_PFROM5xx          3.0
+
+meta               DSR_INGBANK_PFROM             DSR_INGBANK_PFROM0xx && DSR_INGBANK_PFROM5xx && !DSR_INGBANK_VALID
+describe           DSR_INGBANK_PFROM             Common senders of ING BANK Phishing mails
+score              DSR_INGBANK_PFROM             3.0
+
+header             __DSR_INGBANK_SUBJ            Subject =~ /Mijn.(I|l)NG|Uw.(I|l)NG\b|\b(I|l)NG.App\b|\b(I|l)NG.Online\b/i
+meta               DSR_INGBANK_SUBJ              __DSR_INGBANK_SUBJ && !DSR_INGBANK_VALID
+describe           DSR_INGBANK_SUBJ              Common subjects of ING BANK Phishing mails
+score              DSR_INGBANK_SUBJ              2.0
+
+
+body               __DSR_INGBANK_BODY001         /Mijn ING|MijnING|Mijn lNG|MijnlNG/i
+body               __DSR_INGBANK_BODY002         /TAN Code|TAN-Code|TAN-functie|TAN functie/i
+body               __DSR_INGBANK_BODY003         /ING App|lNG app/i
+body               __DSR_INGBANK_BODY004         /ING Online|lNG Online|ING On-line|lNG On-line/i
+body               __DSR_INGBANK_BODY005         /ING app dan ontvangt u een mail met een speciale bevestigingscode/i
+body               __DSR_INGBANK_BODY006         /de onderstaande button|onder weergeven button/i
+body               __DSR_INGBANK_BODY007         /33031431/i
+meta               DSR_INGBANK_BODY0xx           (__DSR_INGBANK_BODY001 + __DSR_INGBANK_BODY002 + __DSR_INGBANK_BODY003 + __DSR_INGBANK_BODY004 + __DSR_INGBANK_BODY005 + __DSR_INGBANK_BODY006 + __DSR_INGBANK_BODY007 >= 3) && !DSR_INGBANK_VALID
+describe           DSR_INGBANK_BODY0xx           Common texts in body of ING BANK Phishing mails
+score              DSR_INGBANK_BODY0xx           3.0
+
+body               __DSR_INGBANK_MING            /Mijn.ING|Mijn.lNG|Mijn(I|l)NG|TAN.(Code|functie)|33031431/i
+tflags             __DSR_INGBANK_MING            multiple maxhits=7
+describe           __DSR_INGBANK_MING            Mijn ING enzo
+
+meta               DSR_INGBANK_HAS_1_MING        (__DSR_INGBANK_MING >= 1) && !DSR_INGBANK_VALID
+describe           DSR_INGBANK_HAS_1_MING        Mijn ING teller = 1
+score              DSR_INGBANK_HAS_1_MING        0.01
+meta               DSR_INGBANK_HAS_2_MING        (__DSR_INGBANK_MING >= 2) && !DSR_INGBANK_VALID
+describe           DSR_INGBANK_HAS_2_MING        Mijn ING teller = 2
+score              DSR_INGBANK_HAS_2_MING        0.20
+meta               DSR_INGBANK_HAS_3_MING        (__DSR_INGBANK_MING >= 3) && !DSR_INGBANK_VALID
+describe           DSR_INGBANK_HAS_3_MING        Mijn ING teller = 3
+score              DSR_INGBANK_HAS_3_MING        0.20
+meta               DSR_INGBANK_HAS_4_MING        (__DSR_INGBANK_MING >= 4) && !DSR_INGBANK_VALID
+describe           DSR_INGBANK_HAS_4_MING        Mijn ING teller = 4 hmmmmmm
+score              DSR_INGBANK_HAS_4_MING        0.35
+meta               DSR_INGBANK_HAS_5_MING        (__DSR_INGBANK_MING >= 5) && !DSR_INGBANK_VALID
+describe           DSR_INGBANK_HAS_5_MING        Mijn ING teller = 5 tuuurlijk
+score              DSR_INGBANK_HAS_5_MING        0.50
+meta               DSR_INGBANK_HAS_6_MING        (__DSR_INGBANK_MING >= 6) && !DSR_INGBANK_VALID
+describe           DSR_INGBANK_HAS_6_MING        Mijn ING teller = 6 ga weg
+score              DSR_INGBANK_HAS_6_MING        0.75
+meta               DSR_INGBANK_HAS_7_MING        (__DSR_INGBANK_MING >= 7) && !DSR_INGBANK_VALID
+describe           DSR_INGBANK_HAS_7_MING        Mijn ING teller = 7 rot op
+score              DSR_INGBANK_HAS_7_MING        1.50
+
+uri                __DSR_INGBANK_BODY9xx         /https:\/\/ing\.nl\//
+meta               DSR_INGBANK_BODY9xx           (DSR_KORTEURL && DSR_INGBANK_HAS_4_MING && !__DSR_INGBANK_BODY9xx)
+describe           DSR_INGBANK_BODY9xx           Common links in body of ING BANK Phishing mails
+score              DSR_INGBANK_BODY9xx           4.0
+
+meta               DSR_INGBANK_SPFFAIL           (SPF_HELO_NONE && DSR_INGBANK_HAS_4_MING && DSR_INGBANK_PFROM5xx) 
+describe           DSR_INGBANK_SPFFAIL           Common SPF Failure in ING BANK Phishing mails
+score              DSR_INGBANK_SPFFAIL           3.0
+
+meta              DSR_INGBANK_PHISH              (DSR_INGBANK_PFROM0xx + DSR_INGBANK_PFROM5xx + DSR_INGBANK_PFROM + DSR_INGBANK_SUBJ + DSR_INGBANK_BODY0xx + DSR_INGBANK_HAS_4_MING + DSR_GENBANK_PHISH_SUBJ + DSR_GENBANK_PHISH_BODY + DSR_HAS_4_BPAS) >= 4
+describe          DSR_INGBANK_PHISH              Multiple triggers on ING BANK Phishing mail
+score             DSR_INGBANK_PHISH              6.0
+
+
+# KNAB Bank Phishing traps
+ifplugin Mail::SpamAssassin::Plugin::DKIM
+  header           __DSR_KNABBANK_VALID001       From =~ /\@knab\.nl/i
+  meta             DSR_KNABBANK_VALID            __DSR_KNABBANK_VALID001 && DKIM_VALID && SPF_PASS
+  describe         DSR_KNABBANK_VALID            Dit is zo goed als zeker een geldige mail van KNAB Bank
+  score            DSR_KNABBANK_VALID            -6.0
+endif
+
+meta               DSR_KNABBANK_INVALID          (__DSR_KNABBANK_VALID001 && SPF_FAIL && !DSR_KNABBANK_VALID)
+describe           DSR_KNABBANK_INVALID          Geldig KNAB E-Mailadres maar foute SPF test....
+score              DSR_KNABBANK_INVALID          5.0
+
+header             __DSR_KNABBANK_PFROM001       From =~ /\@nl-knabbank\..{2,9}|\@knab\..{2,35}\..{2,9}|\@knab(bank|-bank)\..{2,35}\..{2,9}|\@knab(bank|-bank)\..{2,9}/i
+header             __DSR_KNABBANK_PFROM002       From =~ /\@knab.{2,20}\..{2,9}/i
+header             __DSR_KNABBANK_PFROM003       From =~ /knab-.{2,20}\@|knab\@/i
+meta               DSR_KNABBANK_PFROM0xx          ((__DSR_KNABBANK_PFROM001 || __DSR_KNABBANK_PFROM002 || __DSR_KNABBANK_PFROM003 ) && !DSR_KNABBANK_VALID)
+describe           DSR_KNABBANK_PFROM0xx           KNAB Phishing mail zenders
+score              DSR_KNABBANK_PFROM0xx          1.0
+
+header             __DSR_KNABBANK_PFROM500        From =~ /knab |\"knab\" |Mijn Knab|KNAB Klantenservice|Knab Servicedesk/i
+meta               DSR_KNABBANK_PFROM5xx          (__DSR_KNABBANK_PFROM500 && !DSR_KNABBANK_VALID)
+describe           DSR_KNABBANK_PFROM5xx          KNAB Phishing mail zenders
+score              DSR_KNABBANK_PFROM5xx          3.0
+
+meta               DSR_KNABBANK_PFROM             (DSR_KNABBANK_INVALID + DSR_KNABBANK_PFROM0xx + DSR_KNABBANK_PFROM5xx >= 2) && !DSR_KNABBANK_VALID
+describe           DSR_KNABBANK_PFROM             Gifpil voor KNAB Phishing mail zenders: Meerdere triggers
+score              DSR_KNABBANK_PFROM             3.0
+
+header             __DSR_KNABBANK_S001            Subject =~ /KNAB Alert|Mijn KNAB/i
+meta               DSR_KNABBANK_SUBJ              (__DSR_KNABBANK_S001 >= 1) && !DSR_KNABBANK_VALID
+describe           DSR_KNABBANK_SUBJ              KANB BANK Phishing Subject
+score              DSR_KNABBANK_SUBJ              3.0
+
+body               __DSR_KNABBANK_MKNAB            /mijn knab|Knab (account|App|Internet Bankieren|pas|betaalpas)|30100799/i
+tflags             __DSR_KNABBANK_MKNAB            multiple maxhits=7
+describe           __DSR_KNABBANK_MKNAB            Mijn KNAB enzo
+
+meta               DSR_KNABBANK_HAS_1_MK         (__DSR_KNABBANK_MKNAB >= 1) && !DSR_KNABBANK_VALID
+describe           DSR_KNABBANK_HAS_1_MK         Mijn KNAB teller = 1
+score              DSR_KNABBANK_HAS_1_MK         0.01
+meta               DSR_KNABBANK_HAS_2_MK         (__DSR_KNABBANK_MKNAB >= 2) && !DSR_KNABBANK_VALID
+describe           DSR_KNABBANK_HAS_2_MK         Mijn KNAB teller = 2
+score              DSR_KNABBANK_HAS_2_MK         0.20
+meta               DSR_KNABBANK_HAS_3_MK         (__DSR_KNABBANK_MKNAB >= 3) && !DSR_KNABBANK_VALID
+describe           DSR_KNABBANK_HAS_3_MK         Mijn KNAB teller = 3
+score              DSR_KNABBANK_HAS_3_MK         0.20
+meta               DSR_KNABBANK_HAS_4_MK         (__DSR_KNABBANK_MKNAB >= 4) && !DSR_KNABBANK_VALID
+describe           DSR_KNABBANK_HAS_4_MK         Mijn KNAB teller = 4 hmmmmmm
+score              DSR_KNABBANK_HAS_4_MK         0.35
+meta               DSR_KNABBANK_HAS_5_MK         (__DSR_KNABBANK_MKNAB >= 5) && !DSR_KNABBANK_VALID
+describe           DSR_KNABBANK_HAS_5_MK         Mijn KNAB teller = 5 tuuurlijk
+score              DSR_KNABBANK_HAS_5_MK         0.50
+meta               DSR_KNABBANK_HAS_6_MK         (__DSR_KNABBANK_MKNAB >= 6) && !DSR_KNABBANK_VALID
+describe           DSR_KNABBANK_HAS_6_MK         Mijn KNAB teller = 6 ga weg
+score              DSR_KNABBANK_HAS_6_MK         0.75
+meta               DSR_KNABBANK_HAS_7_MK         (__DSR_KNABBANK_MKNAB >= 7) && !DSR_KNABBANK_VALID
+describe           DSR_KNABBANK_HAS_7_MK         Mijn KNAB teller = 7 rot op
+score              DSR_KNABBANK_HAS_7_MK         1.50
+
+
+meta               DSR_KNABBANK_PHISH            (DSR_KNABBANK_INVALID + DSR_KNABBANK_PFROM0xx + DSR_KNABBANK_PFROM5xx + DSR_KNABBANK_PFROM + DSR_KNABBANK_SUBJ + DSR_KNABBANK_HAS_4_MK + DSR_GENBANK_PHISH_SUBJ + DSR_GENBANK_PHISH_BODY + DSR_HAS_4_BPAS + DSR_KORTEURL >= 4) && !DSR_KNABBANK_VALID
+describe           DSR_KNABBANK_PHISH            Gifpil voor KNAB Phishing mails: Meerdere triggers
+score              DSR_KNABBANK_PHISH            6.0
+
+
+
+# ASN Bank Phishing traps
+ifplugin Mail::SpamAssassin::Plugin::DKIM
+  header           __DSR_ASNBANK_VALID001        From =~ /\@asnbank\.nl|\@asn\.nl/i
+  meta             DSR_ASNBANK_VALID             __DSR_ASNBANK_VALID001 && SPF_PASS
+  describe         DSR_ASNBANK_VALID             Dit is zo goed als zeker een geldige mail van ASN Bank
+  score            DSR_ASNBANK_VALID             -5.0
+endif
+
+meta               DSR_ASNBANK_INVALID           (__DSR_ASNBANK_VALID001 && !DSR_ASNBANK_VALID && SPF_FAIL)
+describe           DSR_ASNBANK_INVALID           Geldig ASN E-Mailadres maar foute SPF test....
+score              DSR_ASNBANK_INVALID           7.0
+
+header             __DSR_ASNBANK_PFROM001        From =~ /\@nl-asnbank\..{2,9}|\@asnbank\..{2,35}\..{2,9}|\@asn(bank|-bank)\..{2,35}\..{2,9}|\@asn(bank|-bank)\..{2,9}/i
+header             __DSR_ASNBANK_PFROM002        From =~ /asnbank-.{2,20}\@|asnbank\@/i
+meta               DSR_ASNBANK_PFROM0xx          ((__DSR_ASNBANK_PFROM001 + __DSR_ASNBANK_PFROM002 => 1) && !DSR_ASNBANK_VALID)
+describe           DSR_ASNBANK_PFROM0xx          ASNBANK Phishing mail zenders
+score              DSR_ASNBANK_PFROM0xx          1.0
+
+header             __DSR_ASNBANK_PFROM500        From =~ /asnbank |\"(asnbank|asn-bank)\" |Mijn asn(bank|.bank)|ASN(bank|.bank) Klantenservice|ASN(bank|.bank) Servicedesk/i
+meta               DSR_ASNBANK_PFROM5xx          (__DSR_ASNBANK_PFROM500 && !DSR_ASNBANK_VALID)
+describe           DSR_ASNBANK_PFROM5xx          ASNBANK Phishing mail zenders
+score              DSR_ASNBANK_PFROM5xx          3.0
+
+meta               DSR_ASNBANK_PFROM             (DSR_ASNBANK_PFROM0xx && DSR_ASNBANK_PFROM5xx && !DSR_ASNBANK_VALID)
+describe           DSR_ASNBANK_PFROM             REGIOBANK Phishing mail zenders
+score              DSR_ASNBANK_PFROM             3.0
+
+header             __DSR_ASNBANK_S001            Subject =~ /ASN(BANK|.bank) Alert|Mijn ASN(BANK|.bank)/i
+meta               DSR_ASNBANK_SUBJ              (__DSR_ASNBANK_S001 >= 1) && !DSR_ASNBANK_VALID
+describe           DSR_ASNBANK_SUBJ              ASNBANK Phishing Subject
+score              DSR_ASNBANK_SUBJ              3.0
+
+meta               DSR_ASNBANK_PHISH             (DSR_ASNBANK_INVALID + DSR_ASNBANK_PFROM0xx + DSR_ASNBANK_PFROM5xx + DSR_ASNBANK_PFROM + DSR_ASNBANK_SUBJ + DSR_GENBANK_PHISH_SUBJ + DSR_GENBANK_PHISH_BODY + DSR_HAS_4_BPAS + DSR_KORTEURL >= 4) && !DSR_ASNBANK_VALID
+describe           DSR_ASNBANK_PHISH             Gifpil voor ASNBANK Phishing mails: Meerdere triggers
+score              DSR_ASNBANK_PHISH             7.0
+
+# Regiobank Phishing traps
+ifplugin Mail::SpamAssassin::Plugin::DKIM
+   header          __DSR_REGIOBANK_VALID001      From =~ /\@regiobank\.nl/i
+   meta            DSR_REGIOBANK_VALID           __DSR_REGIOBANK_VALID001 && DKIM_VALID && SPF_PASS
+   describe        DSR_REGIOBANK_VALID           Dit is zo goed als zeker een geldige mail van REGIO Bank         
+   score           DSR_REGIOBANK_VALID           -5.0
+endif
+
+meta               DSR_REGIOBANK_INVALID         (__DSR_REGIOBANK_VALID001 && !DSR_REGIOBANK_VALID) && (SPF_FAIL + DKIM_INVALID>=1)
+describe           DSR_REGIOBANK_INVALID         Geldig REGIOBANK E-Mailadres maar foute SPF of DKIM test....
+score              DSR_REGIOBANK_INVALID         5.0
+
+header             __DSR_REGIOBANK_PFROM001      From =~ /\@nl-regiobank\..{2,9}|\@regiobank\..{2,35}\..{2,9}|\@regio(bank|-bank)\..{2,35}\..{2,9}|\@regio(bank|-bank)\..{2,9}/i
+header             __DSR_REGIOBANK_PFROM002      From =~ /regiobank-.{2,20}\@|regiobank\@/i
+meta               DSR_REGIOBANK_PFROM0xx        ((__DSR_REGIOBANK_PFROM001 + __DSR_REGIOBANK_PFROM002 => 1) && !DSR_REGIOBANK_VALID)
+describe           DSR_REGIOBANK_PFROM0xx        REGIOBANK Phishing mail zenders
+score              DSR_REGIOBANK_PFROM0xx        1.0
+
+header             __DSR_REGIOBANK_PFROM500      From =~ /regiobank |\"(regiobank|regio-bank)\" |Mijn Regiobank|Regiobank Klantenservice|Regiobank Servicedesk/i
+meta               DSR_REGIOBANK_PFROM5xx        (__DSR_REGIOBANK_PFROM500 && !DSR_REGIOBANK_VALID)
+describe           DSR_REGIOBANK_PFROM5xx        REGIOBANK Phishing mail zenders
+score              DSR_REGIOBANK_PFROM5xx        3.0
+
+meta               DSR_REGIOBANK_PFROM           (DSR_REGIOBANK_PFROM0xx && DSR_REGIOBANK_PFROM5xx && !DSR_REGIOBANK_VALID)
+describe           DSR_REGIOBANK_PFROM           REGIOBANK Phishing mail zenders
+score              DSR_REGIOBANK_PFROM		 3.0
+
+header             __DSR_REGIOBANK_S001          Subject =~ /REGIOBANK Alert|Mijn REGIOBANK/i
+meta               DSR_REGIOBANK_SUBJ            (__DSR_REGIOBANK_S001 >= 1) && !DSR_REGIOBANK_VALID
+describe           DSR_REGIOBANK_SUBJ            REGIOBANK Phishing Subject
+score              DSR_REGIOBANK_SUBJ            3.0
+
+meta               DSR_REGIOBANK_PHISH           (DSR_REGIOBANK_INVALID + DSR_REGIOBANK_PFROM0xx + DSR_REGIOBANK_PFROM5xx + DSR_REGIOBANK_PFROM + DSR_REGIOBANK_SUBJ + DSR_GENBANK_PHISH_SUBJ + DSR_GENBANK_PHISH_BODY + DSR_HAS_4_BPAS + DSR_KORTEURL >= 4) && !DSR_REGIOBANK_VALID
+describe           DSR_REGIOBANK_PHISH           Gifpil voor REGIOBANK Phishing mails: Meerdere triggers
+score              DSR_REGIOBANK_PHISH           7.0
+
+
+
+# ICS Credit Card Phishing
+ifplugin Mail::SpamAssassin::Plugin::DKIM
+  header           __DSR_ICSBANK_VALID001        From =~ /\@icscards\.nl|\@.{1,65}\.icscards.nl/i
+  meta             DSR_ICSBANK_VALID             (__DSR_ICSBANK_VALID001 && SPF_PASS)
+  describe         DSR_ICSBANK_VALID             Sender appears to be a legit mail from ICS Credit Cards
+  score            DSR_ICSBANK_VALID             -5.0
+endif
+
+meta               DSR_ICSBANK_INVALID           (__DSR_ICSBANK_VALID001 && !DSR_ICSBANK_VALID && SPF_FAIL)
+describe           DSR_ICSBANK_INVALID           Geldig ICS Cards E-Mailadres maar foute SPF test....
+score              DSR_ICSBANK_INVALID           5.0
+
+header             __DSR_ICSBANK_PF001           From =~ /lcsmailing\@|lcsmail\@|\@mijnics.nl|\@.{1,35}\.mijnics\.nl/i
+header             __DSR_ICSBANK_PF002           From =~ /\@icscards.nl|\@.{1,35}\.icscards.nl|\@icscard.nl|\@.{1,35}\.icscard.nl/i
+header             __DSR_ICSBANK_PF003           From =~ /\@ics\..{2,35}\.nl|\@.{2,35}\.icscards\.(nl|eu|com)/i
+
+meta               DSR_ICSBANK_PF0xx             (__DSR_ICSBANK_PF001 + __DSR_ICSBANK_PF002 +  __DSR_ICSBANK_PF003 >= 1) && !DSR_ICSBANK_VALID
+describe           DSR_ICSBANK_PF0xx             Common senders of ICS Credit Card Phishing mails
+score              DSR_ICSBANK_PF0xx             3.0
+
+#Als dit in de header, staat is het altijd foute boel
+header             __DSR_ICSBANK_PF501           From =~ /lnternational (card|cards) (services|service)/i
+
+meta               DSR_ICSBANK_PF5xx             __DSR_ICSBANK_PF501 && !DSR_ICSBANK_VALID
+describe           DSR_ICSBANK_PF5xx             Harde ICS Cards phishing trigger... DOEI!
+score              DSR_ICSBANK_PF5xx             20.0
+
+#Dit kan fout zijn, maar hoeft niet
+header             __DSR_ICSBANK_PF601           From =~ /International Card (Services|Service)|International Cards (Services|Service)/i
+header             __DSR_ICSBANK_PF602           From =~ /I\.C\.S\./i
+
+meta               DSR_ICSBANK_PF6xx             (__DSR_ICSBANK_PF601 + __DSR_ICSBANK_PF602 >= 1) && !DSR_ICSBANK_VALID
+describe           DSR_ICSBANK_PF6xx             Mogelijke ICS Phishing mail sender
+score              DSR_ICSBANK_PF6xx             0.1
+
+meta               DSR_ICSBANK_PF                (DSR_ICSBANK_PF0xx + DSR_ICSBANK_PF5xx + DSR_ICSBANK_PF6xx >= 2)
+describe           DSR_ICSBANK_PF                Common senders of ICS Credit Card mails
+score              DSR_ICSBANK_PF                2.0
+
+header             __DSR_ICSBANK_PS001            Subject =~ /Geen toegang tot vernieuwde website/i
+header             __DSR_ICSBANK_PS002            Subject =~ /ICS.account|Mijn.ICS|MijnICS/i
+
+meta               DSR_ICSBANK_PSUBJ              __DSR_ICSBANK_PS001 + __DSR_ICSBANK_PS002  >= 1
+describe           DSR_ICSBANK_PSUBJ              Common Subjects of ICS Credit Card Phishing mails
+score              DSR_ICSBANK_PSUBJ              0.3
+
+
+body               __DSR_ICSBANK_PB001           /International Card (Services|Service)|International Cards (Services|Service)/i
+body               __DSR_ICSBANK_PB002           /Wisselwerking 32/i
+body               __DSR_ICSBANK_PB003           /33.200.596/i
+body               __DSR_ICSBANK_PB004           /Card-houders Paspoort legitimatie-bewijs/i
+body               __DSR_ICSBANK_PB005           /U kunt uw Mijn ICS account updaten via de bovenstaande button/i
+body               __DSR_ICSBANK_PB006           /33.200.596/i
+meta               DSR_ICSBANK_PB0xx             __DSR_ICSBANK_PB001 + __DSR_ICSBANK_PB002 + __DSR_ICSBANK_PB003 >= 3
+describe           DSR_ICSBANK_PB0xx             Common body phrases of ICS Credit Card Phishing mails
+score              DSR_ICSBANK_PB0xx             3.0
+
+
+meta               DSR_ICSBANK_PB9xx             (DSR_KORTEURL + DSR_ICSBANK_PB0xx >= 2) && !DSR_ICSBANK_VALID
+describe           DSR_ICSBANK_PB9xx             Common Subjects of ICS Credit Card Phishing mails
+score              DSR_ICSBANK_PB9xx             4.0
+
+#ICS Phishing mails met body phrases die altijd fout zijn
+body               __DSR_ICSBANK_PB801           /International Card (Services|Service)|International Cards (Services|Service)/i
+body               __DSR_ICSBANK_PB802           /Wisselwerking 32/i
+body               __DSR_ICSBANK_PB803           /89.621.750|89621750/i
+meta               DSR_ICSBANK_PB8xx             (__DSR_ICSBANK_PB801 + __DSR_ICSBANK_PB802 + __DSR_ICSBANK_PB803 >= 3) && !DSR_ICSBANK_VALID
+describe           DSR_ICSBANK_PB8xx             ICS Phishing mails met body phrases die altijd fout zijn.....
+score              DSR_ICSBANK_PB8xx             20.0
+
+meta               DSR_ICSBANK_PHISH             (DSR_ICSBANK_PF0xx + DSR_ICSBANK_PF5xx + DSR_ICSBANK_PSUBJ + DSR_ICSBANK_PB0xx + DSR_ICSBANK_PB9xx >= 3) && !DSR_ICSBANK_VALID
+describe           DSR_ICSBANK_PHISH             Multiple triggers on ICS Credit Card Phishing mail
+score              DSR_ICSBANK_PHISH             6.0
+
+
+
+# Linkedin Phishing
+ifplugin Mail::SpamAssassin::Plugin::DKIM
+  header           __DSR_LINKEDIN_VALID001       From =~ /\@linkedin\.com|\@.{1,65}\.linkedin.com/i
+  meta             DSR_LINKEDIN_VALID            (__DSR_LINKEDIN_VALID001 && SPF_PASS)
+  describe         DSR_LINKEDIN_VALID            Sender appears to be a legit mail from Linkedin
+  score            DSR_LINKEDIN_VALID            -5.0
+endif
+
+
+meta               DSR_LINKEDIN_INVALID          (__DSR_LINKEDIN_VALID001 && !DSR_LINKEDIN_VALID) && (SPF_FAIL + DKIM_INVALID>=1)
+describe           DSR_LINKEDIN_INVALID          Geldig LINKEDIN E-Mailadres maar foute SPF of DKIM test....
+score              DSR_LINKEDIN_INVALID          5.0
+
+#header             __DSR_LINKEDIN_PFROM001       From =~ /\@nl-regiobank\..{2,9}|\@regiobank\..{2,35}\..{2,9}|\@regio(bank|-bank)\..{2,35}\..{2,9}|\@regio(bank|-bank)\..{2,9}/i
+#header             __DSR_LINKEDIN_PFROM002       From =~ /regiobank-.{2,20}\@|regiobank\@/i
+#meta               DSR_LINKEDIN_PFROM0xx         ((__DSR_REGIOBANK_PFROM001 + __DSR_REGIOBANK_PFROM002 => 1) && !DSR_REGIOBANK_VALID)
+#describe           DSR_LINKEDIN_PFROM0xx         REGIOBANK Phishing mail zenders
+#score              DSR_LINKEDIN_PFROM0xx         1.0
+
+header             __DSR_LINKEDIN_PFROM500       From =~ /linkedin |linkedlin/i
+meta               DSR_LINKEDIN_PFROM5xx         (__DSR_LINKEDIN_PFROM500 && !DSR_LINKEDIN_VALID)
+describe           DSR_LINKEDIN_PFROM5xx         LINKEDIN Phishing mail zenders
+score              DSR_LINKEDIN_PFROM5xx         5.0
+
+meta               DSR_LINKEDIN_PFROM            (DSR_LINKEDIN_PFROM0xx && DSR_LINKEDIN_PFROM5xx && !DSR_LINKEDIN_VALID)
+describe           DSR_LINKEDIN_PFROM            LINKEDIN Phishing mail zenders
+score              DSR_LINKEDIN_PFROM            3.0
+
+
+
+
+
+#
+#           meta               DSR_ICSBANK_INVALID           (__DSR_ICSBANK_VALID001 && !DSR_ICSBANK_VALID) && (SPF_FAIL + DKIM_INVALID>=1)
+#           describe           DSR_ICSBANK_INVALID           Geldig ICS Cards E-Mailadres maar foute SPF of DKIM test....
+#           score              DSR_ICSBANK_INVALID           5.0
+#
+#           header             __DSR_ICSBANK_PF001           From =~ /lcsmailing\@|lcsmail\@|\@mijnics.nl|\@.{1,35}\.mijnics\.nl/i
+#           header             __DSR_ICSBANK_PF002           From =~ /\@icscards.nl|\@.{1,35}\.icscards.nl|\@icscard.nl|\@.{1,35}\.icscard.nl/i
+#           header             __DSR_ICSBANK_PF003           From =~ /\@ics\..{2,35}\.nl|\@.{2,35}\.icscards\.(nl|eu|com)/i
+
+
+
+
+
+# PostNL Phishing
+header             __DSR_POSTNL_VALID001         From =~ /\@postnl\.nl|\@[a-z][a-z0-9]{1,36}\.postnl\.nl/i
+ifplugin Mail::SpamAssassin::Plugin::SPF
+  meta             DSR_POSTNL_VALID              (__DSR_POSTNL_VALID001 && SPF_PASS )
+  describe         DSR_POSTNL_VALID              Sender appears to be a legit mail from PostNL
+score              DSR_POSTNL_VALID              -5.0
+endif
+
+meta               DSR_POSTNL_INVALID            (__DSR_POSTNL_VALID001 && !DSR_POSTNL_VALID && SPF_FAIL)
+describe           DSR_POSTNL_INVALID            Geldig PostNL E-Mailadres maar foute SPF test....
+score              DSR_POSTNL_INVALID            8.0
+
+header             __DSR_POSTNL_F001             From =~ /postnl.{1,32}</i
+meta               DSR_POSTNL_SCAM               __DSR_POSTNL_F001 && !DSR_POSTNL_VALID
+describe           DSR_POSTNL_SCAM               PostNL scam
+score              DSR_POSTNL_SCAM               8.0
+
+
+
+# DHL/DHL Parcel/Deutschepost enzo
+header             __DSR_DHLPARCEL_VALID001      From =~ /\@dhlparcel\.nl|\@[a-z][a-z0-9]{1,36}\.dhlparcel\.nl/i
+ifplugin Mail::SpamAssassin::Plugin::SPF
+  meta             DSR_DHLPARCEL_VALID           (__DSR_DHLPARCEL_VALID001 && SPF_PASS )
+  describe         DSR_DHLPARCEL_VALID           Sender appears to be a legit mail from PostNL
+score              DSR_DHLPARCEL_VALID           -5.0
+endif
+
+meta               DSR_DHLPARCEL_INVALID         (__DSR_DHLPARCEL_VALID001 && !DSR_DHLPARCEL_VALID && SPF_FAIL)
+describe           DSR_DHLPARCEL_INVALID         Geldig DHL Parcel E-Mailadres maar foute SPF test....
+score              DSR_DHLPARCEL_INVALID         5.0
+
+
+# DPD
+header             __DSR_DPD_VALID001            From =~ /\@dpd\.nl|\@[a-z][a-z0-9]{1,36}\.dpd\.nl/i
+ifplugin Mail::SpamAssassin::Plugin::SPF
+  meta             DSR_DPD_VALID                 (__DSR_DPD_VALID001 && SPF_PASS )
+  describe         DSR_DPD_VALID                 Sender appears to be a legit mail from DPD
+score              DSR_DPD_VALID                 -5.0
+endif
+
+meta               DSR_DPD_INVALID               (__DSR_DPD_VALID001 && !DSR_DPD_VALID && SPF_FAIL)
+describe           DSR_DPD_INVALID               Geldig PostNL E-Mailadres maar foute SPF test....
+score              DSR_DPD_INVALID               5.0
+
+
+
+
+ifplugin Mail::SpamAssassin::Plugin::DKIM
+  header            __DSR_DHLCOM_VALID001    From =~ /\@dhl\.com/i
+  meta              DSR_DHLCOM_VALID __DSR_DHLCOM_VALID001 && DKIM_VALID && DKIM_VALID_AU && SPF_PASS
+  describe          DSR_DHLCOM_VALID Dit is zo goed als zeker een geldige mail van DHL
+  score             DSR_DHLCOM_VALID -6.0
+endif
+
+
+header            __DSR_DHLCOM_INVALID001         From      =~ /dhl.com/i
+body              __DSR_DHLCOM_INVALID002         /Please check the attached shipping document/i
+body              __DSR_DHLCOM_INVALID002         /DHL Express Ltd/i
+
+meta              DSR_DHLCOM_INVALID              ((__DSR_DHLCOM_INVALID001 + __DSR_DHLCOM_INVALID002 + __DSR_DHLCOM_INVALID003) > 2) && !DSR_DHLCOM_VALID
+describe          DSR_DHLCOM_INVALID              Invalid mail from DHL... probably virus
+score             DSR_DHLCOM_INVALID              12
+
+
+# Bos Incasso Fraude
+
+header            __DSR_BOSINCASSO               From      =~ /\@bos-incasso\.nl/i
+meta              DSR_BOSINCASSO                 (__DSR_BOSINCASSO) >= 1
+describe          DSR_BOSINCASSO                 Fraude van fake bos incasso adres
+score             DSR_BOSINCASSO                 15
+
+# Woningnet scam
+#
+header            __DSR_WONINGNET001             From      =~ /\@woningnet\.nl|\@[a-z][a-z0-9]{1,36}\.woningnet\.nl/i 
+
+meta              DSR_WONINGNET_VALID            __DSR_WONINGNET001 && SPF_PASS
+describe          DSR_WONINGNET_VALID            Valid mail van woningnet
+score             DSR_WONINGNET_VALID            -30
+
+header            __DSR_WONINGNET002             From      =~ /\bwoningnet\b/i
+
+
+meta              DSR_WONINGNET_F001             __DSR_WONINGNET001 && (SPF_FAIL || T_SPF_TEMPERROR)
+describe          DSR_WONINGNET_F001             Woningnet Oplichting
+score             DSR_WONINGNET_F001             15
+
+meta              DSR_WONINGNET_F002             __DSR_WONINGNET002 && !__DSR_WONINGNET001
+describe          DSR_WONINGNET_F002             Woningnet Oplichting
+score             DSR_WONINGNET_F002             15
+
+header            __DSR_WONINGNET_SUBJ           Subject =~ /Mijn Woningnet|Inschrijving|uitschrijving|lidmaatschap/i
+
+
+
+# Coolblue scam
+header            __DSR_COOLBLUE_VALID001         From      =~ /\@coolblue\.nl|\@mail\.coolblue\.eu/i
+header            __DSR_COOLBLUE_VALID002         Received  =~ /\.coolblue\.nl|\.coolblue\.eu/i
+
+meta              DSR_COOLBLUE_VALID              (__DSR_COOLBLUE_VALID001 && __DSR_COOLBLUE_VALID002)
+describe	  DSR_COOLBLUE_VALID              Valid mail from Coolblue
+score             DSR_COOLBLUE_VALID              -0.1
+
+
+body              __DSR_COOLBLUE_KADOBON001       /Je bent geselecteerd als kanshebber voor het winnen van/i
+header            __DSR_COOLBLUE_KADOBON002       From      =~ /coolblue/i
+body              __DSR_COOLBLUE_KADOBON003       /Win een kadobon t\.w\.v\. 500/i
+
+meta              DSR_COOLBLUE_KADOBON            (__DSR_COOLBLUE_KADOBON001 && __DSR_COOLBLUE_KADOBON002 && __DSR_COOLBLUE_KADOBON003 && !DSR_COOLBLUE_VALID)
+describe          DSR_COOLBLUE_KADOBON            Scam cadeaubon van Coolblue
+score             DSR_COOLBLUE_KADOBON            5.0
+
+
+# EU Business Register Oplichting
+header            __DSR_EUBUSREG_001              From =~ /EU Business Register/i
+body              __DSR_EUBUSREG_002              /3700 AA ZEIST/i
+body              __DSR_EUBUSREG_003              /Eu Business Register/i
+body              __DSR_EUBUSREG_004              /In order to have your company inserted in the EU Business Register for ....\/...., please print, complete and submit the attached form in a reply to this email./i
+
+meta              DSR_EUBUSREG                    (__DSR_EUBUSREG_001 && __DSR_EUBUSREG_002 && __DSR_EUBUSREG_003 && __DSR_EUBUSREG_004)
+describe          DSR_EUBUSREG                    EU Business Register Oplichting
+score             DSR_EUBUSREG                    7.0
+
+
+# VAN DER VALK SPAM
+header             __DSR_VDVALK001               From =~ /VAN DER VALK/
+header             __DSR_VDVALK002               Subject =~ /Wij hebben 25 mensen uit onze database geselecteerd die kans maken op een all-inclusive vakantie voor/i
+body               __DSR_VDVALK003               /U maakt kans op een hotelovernachting voor 2 personen bij een Van Der Valk hotel naar keuze/i
+
+meta               DSR_VDVALKFROM                __DSR_VDVALK001
+describe           DSR_VDVALKFROM                Van der Valk SPAM
+score              DSR_VDVALKFROM                5.0
+
+
+meta               DSR_VDVALK                    (__DSR_VDVALK001 && __DSR_VDVALK002)
+describe           DSR_VDVALK                    vd Valk Spam
+score              DSR_VDVALK                    15.0
+
+
+
+#CEO Fraud
+#
+body               __DSR_CEOFRAUD_003             /We moeten een betaling van .{5,16} te maken aan een bedrijf in .{4,25}. Welke informatie heb je nodig om de betaling te doen vandaag?/i
+body               __DSR_CEOFRAUD_004             /Met vriendelijke Groet/
+
+meta              DSR_CEOFRAUD                    (__DSR_CEOFRAUD_003 + __DSR_CEOFRAUD_004 =>1)
+describe          DSR_CEOFRAUD                    CEO Fraud
+score             DSR_CEOFRAUD                    6.5
+
+
+# Medicijnen
+
+header            __DSR_SUBJECT_MEDS001           Subject =~ /Meds:/i
+header            __DSR_SUBJECT_MEDS002           Subject =~ /Generic/i
+header            __DSR_SUBJECT_MEDS003           Subject =~ /Viagra/i
+header            __DSR_SUBJECT_MEDS004           Subject =~ /Super/i
+header            __DSR_SUBJECT_MEDS005           Subject =~ /Generic Zirtomax|Generic Xenical/i
+header            __DSR_SUBJECT_MEDS006           Subject =~ /Weight Loss|Generic Propecia|Generic Cialis/i
+header            __DSR_SUBJECT_MEDS007           Subject =~ /VPXL/i #VPXL Penis Enhancement Pills
+
+meta              DSR_SUBJECT_MEDS                __DSR_SUBJECT_MEDS001 + __DSR_SUBJECT_MEDS002 + __DSR_SUBJECT_MEDS003 + __DSR_SUBJECT_MEDS004 + __DSR_SUBJECT_MEDS005 + __DSR_SUBJECT_MEDS006 + __DSR_SUBJECT_MEDS007 >= 2
+describe          DSR_SUBJECT_MEDS                Subject met medicijnen
+score             DSR_SUBJECT_MEDS                4.0
+
+
+header            __DSR_MARLYKOOK001              From =~ /\"Marley Spoon\" \</i
+header            __DSR_MARLYKOOK002              Subject =~ /De nieuwe manier van koken/i
+body              __DSR_MARLYKOOK003              /De nieuwe manier van koken/i
+
+meta              DSR_MARLYKOOK                   __DSR_MARLYKOOK001 + __DSR_MARLYKOOK002 + __DSR_MARLYKOOK003 >= 3
+describe          DSR_MARLYKOOK                   Subject met medicijnen
+score             DSR_MARLYKOOK                   8.0
+
+
+header            __DSR_WELLICHT001                 Subject =~ /Wellicht iets voor jou/i
+body              __DSR_WELLICHT002                 /Via onze nieuwe contact methode kom je simpel in contact met seks zoekende uit de regio/i
+body              __DSR_WELLICHT003                 /Altijd al gefantaseerd over een plek waar je gewoon andere vrijgezellen kunt ontmoeten voor een spannend afspraakje/i
+body              __DSR_WELLICHT004                 /Een plek waar mannen en vrouwen samen komen met maar 1 doel en dat is lust/i
+
+meta              DSR_WELLICHT                    __DSR_WELLICHT001 + __DSR_WELLICHT002 + __DSR_WELLICHT003 + __DSR_WELLICHT004 >= 4
+describe          DSR_WELLICHT                    Seks dating
+score             DSR_WELLICHT                    8.0
+
+
+header            __DSR_NBC001                    From =~ /\"NBC\" \</i
+header            __DSR_NBC002                    Subject =~ /hypotheeklasten/i
+body              __DSR_NBC003                    /Nationaal Bespaarcentrum/i
+body              __DSR_NBC004                    /Hypotheek/i
+
+meta              DSR_NBC                         __DSR_NBC001 + __DSR_NBC002 + __DSR_NBC003 + __DSR_NBC004 >= 3
+describe          DSR_NBC                         Nationaal Bespaarcentrum Spam
+score             DSR_NBC                         9.0
+
+header             __DSR_SENIORENVOORDEEL001     Subject =~ /Voordeel voor Senioren/i
+header             __DSR_SENIORENVOORDEEL002     From =~ /Voordeel voor Senioren/i
+meta               DSR_SENIORENVOORDEEL          (__DSR_SENIORENVOORDEEL001 + __DSR_SENIORENVOORDEEL002) >=2
+describe           DSR_SENIORENVOORDEEL          Spam Voordeel voor Senioren
+score              DSR_SENIORENVOORDEEL          8.0
+
+
+# Spam mbt Alarmsystemen
+#
+#
+
+header             __DSR_ALARMSYS001             From =~ /Inbraakchecker|Veilig Wonen Nederland/i
+header             __DSR_ALARMSYS002             Subject =~ /inbraakcheck|Hoe veilig woont u/i
+body               __DSR_ALARMSYS003             /Elke 10 minuten wordt er in Nederland ingebroken/i
+meta               DSR_ALARMSYS                  (__DSR_ALARMSYS001 + __DSR_ALARMSYS002) >=2
+describe           DSR_ALARMSYS                  Spam Inbraaksysteemspam
+score              DSR_ALARMSYS                  8.0
+
+meta               DSR_ALARMSYS                  (__DSR_ALARMSYS001 + __DSR_ALARMSYS002 + __DSR_ALARMSYS003) >= 3
+describe           DSR_ALARMSYS                  Spam Inbraaksysteemspam 
+score              DSR_ALARMSYS                  8.0
+
+
+
+
+
+
+
+
+
+# Russian Girl Friend
+header            __DSR_RUSSIANGF001              X-Mailer =~ /PHPMailer 5\.2\.22/i
+rawbody           __DSR_RUSSIANGF002              /\@rambler\.ru|o2.pl/i
+body              __DSR_RUSSIANGF003              /Hi, I\'m from Russia/i
+body              __DSR_RUSSIANGF004              /a dream to live abroad/i
+body              __DSR_RUSSIANGF005              /, can we get started?/i
+body              __DSR_RUSSIANGF006              /Good day, I accidentally found a letter from you, I remember how we communicated with you\./i
+body              __DSR_RUSSIANGF007              /Can I ask you? \"Was you ever have sex with a Russian girl? Would you like to try it?\"/i
+body              __DSR_RUSSIANGF008              /Why not send me letters? I am very sad one in Russia, write to me/i
+body              __DSR_RUSSIANGF009              /You seem like my type and I would like to know you more/i
+meta              DSR_RUSSIANGF                   (__DSR_RUSSIANGF001 + __DSR_RUSSIANGF002 + __DSR_RUSSIANGF003 + __DSR_RUSSIANGF004 + __DSR_RUSSIANGF005 + __DSR_RUSSIANGF006 + __DSR_RUSSIANGF007 + __DSR_RUSSIANGF008 + __DSR_RUSSIANGF009 >= 2)
+describe          DSR_RUSSIANGF                   Get lost
+score             DSR_RUSSIANGF                   15.0
+
+
+header            __DSR_RUSHOOKUP001                Subject =~ /Hookup|Fuckbuddy|Instacheat/i
+body              __DSR_RUSHOOKUP002                /Hookup|fuckbuddy|Instacheat/i
+uri               __DSR_RUSHOOKUP999                /clck\.yandex\.ru/i
+
+meta              DSR_RUSHOOKUP                     (__DSR_RUSHOOKUP001 + __DSR_RUSHOOKUP002 + __DSR_RUSHOOKUP999 + HEADER_FROM_DIFFERENT_DOMAINS) >= 4
+describe          DSR_RUSHOOKUP                   Get lost
+score             DSR_RUSHOOKUP                   15
+
+
+#SEO Spam
+header            __DSR_SEOSPAM001              From      =~ /Domain Expiration SEO|Final reminder|Internet Services/i
+header            __DSR_SEOSPAM002              Subject   =~ /Expiration SEO|This is your Final Reminder of Domain -/i
+body              __DSR_SEOSPAM003              /written request to Domain Seo Service/i
+body              __DSR_SEOSPAM004              /This is not a bill or an invoice./i
+body              __DSR_SEOSPAM005              /purchase offer. Your are under no/i
+body              __DSR_SEOSPAM006              /Domain Registration Service SEO Company/i
+body              __DSR_SEOSPAM007              /to purchase our search engine traffic generator/i
+body              __DSR_SEOSPAM008              /Note that THIS IS NOT A BILL. This is a solicitation./i
+body              __DSR_SEOSPAM009              /This domain seo registration for/i
+body              __DSR_SEOSPAM010              /FINAL NOTICE FOR DOMAIN/i
+body              __DSR_SEOSPAM011              /EXPIRATION OFFER SEO NOTIFICATION/i
+body              __DSR_SEOSPAM012              /Domain SEO Service Registration Corp/i
+body              __DSR_SEOSPAM013              /this offer \(making it difficult for your customers to locate/i
+body              __DSR_SEOSPAM014              /Domain name search engine registration/i
+body              __DSR_SEOSPAM015              /Search engine subscription/i
+
+meta              DSR_SEOSPAM                   DSR_KORTEURL + __DSR_SEOSPAM001 + __DSR_SEOSPAM002 + __DSR_SEOSPAM003 + __DSR_SEOSPAM004 + __DSR_SEOSPAM005 + __DSR_SEOSPAM006 + __DSR_SEOSPAM007 + __DSR_SEOSPAM008 + __DSR_SEOSPAM009 +  __DSR_SEOSPAM010 + __DSR_SEOSPAM011 + __DSR_SEOSPAM012 + __DSR_SEOSPAM013 + __DSR_SEOSPAM014 + __DSR_SEOSPAM015 >= 4
+describe          DSR_SEOSPAM SEO Offer spam
+score             DSR_SEOSPAM 10.0
+
+
+#Phishing for cPanel passwords
+header             __DSR_CPANEL_PHISH001         From      =~ /cPanel/i
+header             __DSR_CPANEL_PHISH002         Subject   =~ /De-activation Notice/i
+uri                __DSR_CPANEL_PHISH003         /naj\.php/i
+body               __DSR_CPANEL_PHISH004         /server has been approved and initiated/i
+meta               DSR_CPANEL_PHISH __DSR_CPANEL_PHISH001 + __DSR_CPANEL_PHISH002 + __DSR_CPANEL_PHISH003 + __DSR_CPANEL_PHISH004 >= 4
+describe           DSR_CPANEL_PHISH Phishing for cPanel passwords
+score              DSR_CPANEL_PHISH 10.0
+
+
+
+
+
+body               __DSR_DATASOFTSPAM001         /DataSoftSolutions LP, 64 Cumberland Street, Edinburgh, VK/i
+body               __DSR_DATASOFTSPAM002         /Time Travel Promotion LP/i
+meta               DSR_DATASOFTSPAM              __DSR_DATASOFTSPAM001 && __DSR_DATASOFTSPAM002
+describe           DSR_DATASOFTSPAM              Zakelijke spam van DatasoftSolutions
+score              DSR_DATASOFTSPAM              15
+
+
+# promotrades.com
+#
+
+header            __DSR_PROMOTRADESCOM           From =~ /promotrades\.com/i
+meta              DSR_PROMOTRADESCOM             __DSR_PROMOTRADESCOM
+describe          DSR_PROMOTRADESCOM             Promotrades.com altijd SPAM
+score             DSR_PROMOTRADESCOM             15
+
+# Hyperion Solutions, SL
+body             __DSR_HYPERION001               /Hyperion Solutions, SL verantwoordelijk is, met CIF B88586292/i
+body             __DSR_HYPERION002               /Paseo de la Castellana, 194, 28046 Madrid, Spanje/i
+meta             DSR_HYPERION                    __DSR_HYPERION001 && __DSR_HYPERION002
+describe         DSR_HYPERION                    Hyperion SL is spam
+score            DSR_HYPERION                    15
+
+# friedrich mayrhofer scam
+header           __DSR_MAYR_F001                 From =~ /friedrich mayrhofer/i
+body             __DSR_MAYR_B001                 /friedrich mayrhofer/i
+body             __DSR_MAYR_B002                 /2\.800\.000/i
+meta             DSR_MAYR                        __DSR_MAYR_F001 && __DSR_MAYR_B001 && __DSR_MAYR_B002
+describe         DSR_MAYR                        friedrich mayrhofer scam
+score            DSR_MAYR                        15
+
+
+# TW Spam
+header           __DSR_TWSCAM_F001               From =~ /TW.{0,30}</i
+header           __DSR_TWSCAM_F002               From =~/mail\@/i
+rawbody          __DSR_TWSCAM_RB001              /campaigns.{2,45}track-url/i
+meta             DSR_TWSCAM                      __DSR_TWSCAM_F001 && __DSR_TWSCAM_F002 && __DSR_TWSCAM_RB001
+describe         DSR_TWSCAM                      TW Scam
+score            DSR_TWSCAM                      15
+
+
+
+
+# Zoom spam
+#
+ifplugin Mail::SpamAssassin::Plugin::DKIM
+  header            __DSR_ZOOMUS_VALID001    From =~ /\@zoom\.us|\@.{1,35}\.zoom\.us/i
+  meta              DSR_ZOOMUS_VALID __DSR_ZOOMUS_VALID001 && DKIM_VALID && SPF_PASS
+  describe          DSR_ZOOMUS_VALID Valid mail from Zoom.us
+  score             DSR_ZOOMUS_VALID -6.0
+endif
+
+header             __DSR_FAKEZOOMVM_001          From =~ / via Zoom/i
+
+meta               DSR_FAKEZOOMVM                __DSR_FAKEZOOMVM_001 && !DSR_ZOOMUS_VALID
+describe           DSR_FAKEZOOMVM                Fake Zoom voicemail alerts
+score              DSR_FAKEZOOMVM               35           
+
+
+whitelist_from_spf                               @zoom.us
+whitelist_from_spf                               @*.zoom.us
+
+
+
+# .icu domein...... nog niets nuttigs
+#
+
+rawbody            DSR_ICU                       /http(?:s):\/\/(?:www.)?.{4,30}\.(icu)(\b|\/)/i
+score              DSR_ICU                       0.50
+describe           DSR_ICU                       Prevalent use of .icu in spam/malware
+
+header             DSR_DOM_ICU                   From =~ /\b@.{1,25}\.icu\b/i
+describe           DSR_DOM_ICU                   .icu domeinnamen sturen eigenlijk altijd spam  
+score              DSR_DOM_ICU                   5.0
+
+# Korte URL's Thanks to KAM
+uri                __DSR_KORTEURL                /https?:\/\/(?:j\.mp|bit\.ly|goo\.gl|x\.co|t\.co|t\.cn|tinyurl\.com|hop\.kz|urla\.ru|fw\.to|bit\.do|ow\.ly|iturl\.nl|go2li\.ink)(\/)/i
+uri                __DSR_MINIDOMEIN              /https?:\/\/(?:[^\/]{1,4})\..{2,7}\//i
+uri                __DSR_LINKSPLIT               /linksplit\.io/i
+
+meta               DSR_KORTEURL                  (__DSR_KORTEURL + __DSR_MINIDOMEIN + __DSR_LINKSPLIT >= 1)
+score              DSR_KORTEURL                  0.001
+describe           DSR_KORTEURL                  Use of a URL Shortener for short URL
+
+
+# SPF Whitelist
+
+whitelist_from_spf      *@belastingdienst.nl
+whitelist_from_spf      *@rivm.nl
+whitelist_from_spf      *@*.rivm.nl
+
+# ABN AMRO Bank Whitelist
+whitelist_from_spf      *@nl.abnamro.com
+whitelist_from_spf      *@pub.nl.abnamro.com
+
+# ING Bank Whitelist
+whitelist_from_spf      *@ing.nl
+whitelist_from_spf      *@ing.com
+whitelist_from_spf      *@mail.ing.nl
+whitelist_from_spf      *@emailing.ing.nl
+whitelist_from_spf      *@verzekeren.ing.nl
+whitelist_from_spf      *@businessboost.nl
+whitelist_from_spf      *@emailing.businessboost.nl
+whitelist_from_spf      *@ingprivatebanking.nl
+whitelist_from_spf      *@email.ingthink.com
+whitelist_from_spf      *@economics.ingthink.com
+
+# Diverse banken
+whitelist_from_spf      *@rabobank.nl
+whitelist_from_spf      *@sns.nl
+whitelist_from_spf      *@snsbank.nl
+whitelist_from_spf      *@asnbank.nl
+whitelist_from_spf      *@regiobank.nl
+whitelist_from_spf      *@icscards.nl
+whitelist_from_spf      *@vanlanschot.com
+
+# SPF Whitelist PostNL
+whitelist_from_spf      *@postnl.nl
+whitelist_from_spf      noreply@notificatie.postnl.nl
+whitelist_from_spf      noreply@*.notificatie.postnl.nl
+whitelist_from_spf      noreply@informatie.postnl.nl
+whitelist_from_spf      noreply@edm.postnl.nl
+whitelist_from_spf      noreply@extra-at-home.postnl.nl
+whitelist_from_spf      onlineservice@informatie.postnl.nl
+whitelist_from_spf      zakelijkefactuur@facturen.postnl.nl
+whitelist_from_spf      noreply@account.postnl.nl
+
+
+# diverse deurwaarders
+whitelist_from_spf      *@bazuin.nl
+whitelist_from_spf      *@ggn.nl
+whitelist_from_spf      *@hafkamp.nl
+whitelist_from_spf      *@janssen-janssen.nl
+whitelist_from_spf      *@lavg.nl
+whitelist_from_spf      *@transactions.lavg.nl
+whitelist_from_spf      *@ram-vismans.nl
+whitelist_from_spf      *@syncasso.nl
+
+whitelist_from_spf      *@rijksoverheid.nl
+whitelist_from_spf      *@sidn.nl
+whitelist_from_spf      *@pub.sidn.nl
+whitelist_from_spf      *@vdb.eu
+whitelist_from_spf      *@vdb.nl
+
+if (version >= 4.000000) 
+  welcomelist_from_spf     *@rijksoverheid.nl
+
+endif
+
+
+#EOF
