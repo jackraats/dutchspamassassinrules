@@ -996,16 +996,16 @@ score              DSR_KNABBANK_PFROM0xx          1.0
 header             __DSR_KNABBANK_PFROM500        From =~ /knab |\"knab\" |Mijn Knab|KNAB Klantenservice|Knab Servicedesk/i
 meta               DSR_KNABBANK_PFROM5xx          (__DSR_KNABBANK_PFROM500 && !DSR_KNABBANK_VALID)
 describe           DSR_KNABBANK_PFROM5xx          KNAB Phishing mail zenders
-score              DSR_KNABBANK_PFROM5xx          3.0
+score              DSR_KNABBANK_PFROM5xx          4.0
 
 meta               DSR_KNABBANK_PFROM             (DSR_KNABBANK_INVALID + DSR_KNABBANK_PFROM0xx + DSR_KNABBANK_PFROM5xx >= 2) && !DSR_KNABBANK_VALID
 describe           DSR_KNABBANK_PFROM             Gifpil voor KNAB Phishing mail zenders: Meerdere triggers
-score              DSR_KNABBANK_PFROM             3.0
+score              DSR_KNABBANK_PFROM             4.0
 
 header             __DSR_KNABBANK_S001            Subject =~ /KNAB Alert|Mijn KNAB/i
 meta               DSR_KNABBANK_SUBJ              (__DSR_KNABBANK_S001 >= 1) && !DSR_KNABBANK_VALID
 describe           DSR_KNABBANK_SUBJ              KANB BANK Phishing Subject
-score              DSR_KNABBANK_SUBJ              3.0
+score              DSR_KNABBANK_SUBJ              4.0
 
 body               __DSR_KNABBANK_MKNAB            /mijn knab|Knab (account|App|Internet Bankieren|pas|betaalpas)|30100799/i
 tflags             __DSR_KNABBANK_MKNAB            multiple maxhits=7
